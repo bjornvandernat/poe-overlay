@@ -14,6 +14,7 @@ global TOOLTIP_DELAY := 500    ; ms the pointer must rest on a control before it
 global OvChrome := []       ; grip + resize handle bars: shown on hover unless locked
 global OvCog := ""          ; settings cog: shown on hover, also when locked
 global OvHover := false
+global GameCursor := ""        ; last cursor handle seen over PoE ("" = not captured yet)
 global OvDragging := false  ; keeps the chrome visible during move/resize
 global OV_BG := "1C1C1C"    ; background colour; made click-through + invisible when not hovering
 
@@ -120,6 +121,8 @@ UpdateHover() {
             on := mx >= x && mx < x + w && my >= y && my < y + h
         }
     }
+    if !on && IsPoeActive()
+        CaptureGameCursor()
     if on != OvHover {
         OvHover := on
         ApplyChrome()
@@ -183,9 +186,33 @@ ResizeDrag() {
     SaveConfig()
 }
 
+; Over the overlay Windows would switch to its own arrow. Instead keep showing whatever PoE was
+; showing just before the pointer entered the bar (its custom cursor, or none if PoE hides the
+; system cursor and draws its own). The grip and the resize handle are the exceptions: they get the move and resize arrows.
+CaptureGameCursor() {
+    global GameCursor
+    ci := Buffer(A_PtrSize = 8 ? 24 : 20, 0)   ; CURSORINFO
+    NumPut("UInt", ci.Size, ci)
+    if DllCall("GetCursorInfo", "Ptr", ci)
+        GameCursor := (NumGet(ci, 4, "UInt") & 1) ? NumGet(ci, 8, "Ptr") : 0   ; CURSOR_SHOWING
+}
+
 OnOverlayCursor(wParam, lParam, msg, hwnd) {
-    if OvGui && OvHandle.Has(wParam) {
+    if !OvGui
+        return
+    if OvHandle.Has(wParam) && !Settings["locked"] {
         DllCall("SetCursor", "Ptr", DllCall("LoadCursor", "Ptr", 0, "Ptr", 32642, "Ptr"))   ; IDC_SIZENWSE
+        return true
+    }
+    if wParam = OvGrip && !Settings["locked"] {
+        DllCall("SetCursor", "Ptr", DllCall("LoadCursor", "Ptr", 0, "Ptr", 32646, "Ptr"))   ; IDC_SIZEALL
+        return true
+    }
+    if GameCursor = ""
+        return
+    ctl := GuiCtrlFromHwnd(wParam)
+    if wParam = OvGui.Hwnd || (ctl && ctl.Gui = OvGui) {
+        DllCall("SetCursor", "Ptr", GameCursor)
         return true
     }
 }
