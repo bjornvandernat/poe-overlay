@@ -1,6 +1,7 @@
 name: Release
 
 # Pushing a tag like v1.0.0 builds the zip and publishes a GitHub release with it attached.
+# The version comes from the tag: it is written into VERSION for the zip, and committed back to main.
 on:
   push:
     tags: ['v*']
@@ -14,12 +15,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Stamp VERSION from tag
+        shell: pwsh
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if ($env:TAG -notmatch '^v(\d+\.\d+\.\d+)$') { throw "Tag '$env:TAG' must look like v1.2.3" }
+          $ver = $Matches[1]
+          Set-Content -Path VERSION -Value $ver -NoNewline -Encoding ascii
+          "VER=$ver" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
       - name: Build zip
         shell: pwsh
-        run: Compress-Archive -Path overlay.ahk, lib, icons, README.md -DestinationPath "poe-travel-overlay-${{ github.ref_name }}.zip"
+        run: Compress-Archive -Path overlay.ahk, VERSION, lib, icons, README.md -DestinationPath "poe-travel-overlay-${{ github.ref_name }}.zip"
 
       - name: Publish release
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release create "${{ github.ref_name }}" "poe-travel-overlay-${{ github.ref_name }}.zip" --title "${{ github.ref_name }}" --generate-notes
+
+      # Keep VERSION on main in sync so clones and source zips report the latest release.
+      # Skipped silently if main can't be pushed to (e.g. branch protection).
+      - name: Commit VERSION back to main
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout -f -B main origin/main
+          Set-Content -Path VERSION -Value $env:VER -NoNewline -Encoding ascii
+          if (git status --porcelain VERSION) {
+            git add VERSION
+            git commit -m "Set VERSION to $env:VER"
+            git push origin main
+          }

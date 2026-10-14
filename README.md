@@ -90,6 +90,7 @@ Icons live in `icons/`. To use your own, drop a PNG there (48x48 works best) and
 
 ```
 overlay.ahk              entry point
+VERSION                  current version (read by the script, checked by the release workflow)
 lib/config.ahk           settings and button list (settings.ini)
 lib/commands.ahk         sending chat commands, hotkey registration
 lib/overlay.ahk          the floating button bar
