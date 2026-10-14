@@ -1,0 +1,25 @@
+name: Release
+
+# Pushing a tag like v1.0.0 builds the zip and publishes a GitHub release with it attached.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build zip
+        shell: pwsh
+        run: Compress-Archive -Path overlay.ahk, lib, icons, README.md -DestinationPath "poe-travel-overlay-${{ github.ref_name }}.zip"
+
+      - name: Publish release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create "${{ github.ref_name }}" "poe-travel-overlay-${{ github.ref_name }}.zip" --title "${{ github.ref_name }}" --generate-notes
