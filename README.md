@@ -4,6 +4,10 @@ A small floating bar of buttons for Path of Exile (PoE 1), written in AutoHotkey
 
 The bar only shows while the PoE window has focus. Clicking it never takes focus from the game.
 
+| The overlay in game | The settings panel |
+| --- | --- |
+| ![The overlay bar in the bottom-left of the PoE window](images/overlay.png) | ![The settings panel with the default buttons](images/settings.png) |
+
 ## Features
 
 - Default buttons: `/hideout`, `/kingsmarch`, `/boat`, `/menagerie`, `/sanctum`
