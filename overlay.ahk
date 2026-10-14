@@ -11,6 +11,8 @@ A_TrayMenu.Insert("1&", "Settings", ShowSettings)
 A_TrayMenu.Insert("2&", "Reload", (*) => Reload())
 A_TrayMenu.Insert("3&")
 A_IconTip := "PoE Overlay"
+if FileExist(A_ScriptDir "\icons\tray.ico")
+    TraySetIcon(A_ScriptDir "\icons\tray.ico")
 
 LoadConfig()
 RegisterHotkeys()
