@@ -11,7 +11,7 @@ The bar only shows while the PoE window has focus. Clicking it never takes focus
 ## Features
 
 - Default buttons: Hideout (`/hideout`), Guild Hideout (`/guild`), Kingsmarch (`/kingsmarch`), Menagerie (`/menagerie`), Monastery (`/monastery`), Sanctum (`/sanctum`), Rogue Harbour (`/heist`), Mine Encampment (`/delve`) and The Sovereign (`/boat`)
-- Monotone icons, 48x48 px per button at 100% scale (the settings cog stays 24x24)
+- Icons, 48x48 px per button at 100% scale 
 - Click a button, or press its hotkey, to send the command
 - A settings panel (the cog button) to:
   - add, delete and reorder buttons, and enable or disable each one with its checkbox
