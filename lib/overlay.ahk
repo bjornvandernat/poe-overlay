@@ -260,3 +260,17 @@ OnMessage(0x232, OnDragEnd)        ; WM_EXITSIZEMOVE
 SetTimer(UpdateHover, 50)
 SetTimer(UpdateTooltip, 50)
 OnMessage(0x20, OnOverlayCursor)   ; WM_SETCURSOR
+
+; Event-driven show/hide: Windows calls this the moment the foreground window changes, so the
+; overlay reacts immediately instead of waiting for the next UpdateVisibility timer tick (the
+; timer stays as a backup for anything the event misses).
+OnForegroundChange(hook, event, hwnd, idObject, idChild, eventThread, eventTime) {
+    UpdateVisibility()
+}
+
+global FgHook := DllCall("SetWinEventHook"
+    , "UInt", 0x0003, "UInt", 0x0003      ; EVENT_SYSTEM_FOREGROUND
+    , "Ptr", 0, "Ptr", CallbackCreate(OnForegroundChange)
+    , "UInt", 0, "UInt", 0, "UInt", 0     ; all processes/threads, WINEVENT_OUTOFCONTEXT
+    , "Ptr")
+OnExit((*) => FgHook && DllCall("UnhookWinEvent", "Ptr", FgHook))
