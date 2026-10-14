@@ -39,6 +39,9 @@ BuildOverlay() {
     ; -DPIScale: sizes and positions are real pixels; +E0x08000000 = never take focus on click
     g := Gui("+AlwaysOnTop -Caption +ToolWindow -DPIScale +E0x08000000")
     g.BackColor := OV_BG
+    ; no Windows fade when the overlay is shown/hidden, so it vanishes the instant focus is lost
+    DllCall("dwmapi\DwmSetWindowAttribute", "Ptr", g.Hwnd, "UInt", 3   ; DWMWA_TRANSITIONS_FORCEDISABLED
+        , "Int*", 1, "UInt", 4)
     g.MarginX := 0, g.MarginY := 0
 
     OvGrip := g.AddText(vert ? "x0 y0 w" cross " h" grip " +0x100 Background3A3A3A"
