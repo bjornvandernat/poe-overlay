@@ -9,3 +9,5 @@ Thumbs.db
 Desktop.ini
 .vscode/
 .idea/
+/overlay.ahk - Shortcut.lnk
+/tools/generate-icons.ps1
