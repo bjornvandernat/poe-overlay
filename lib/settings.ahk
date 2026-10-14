@@ -18,7 +18,7 @@ ShowSettings(*) {
 
     g := SettingsGui := Gui("+AlwaysOnTop", "PoE Overlay Settings")
     g.SetFont("s9", "Segoe UI")
-    SLV := g.AddListView("xm w520 r8 -Multi", ["Name", "Command", "Hotkey", "Icon"])
+    SLV := g.AddListView("xm w520 r8 -Multi Checked", ["Name", "Command", "Hotkey", "Icon"])
     SLV.OnEvent("ItemSelect", (*) => LoadFields())
     g.AddButton("xm w60", "Add").OnEvent("Click", AddRow)
     g.AddButton("x+6 w60", "Delete").OnEvent("Click", DeleteRow)
@@ -75,6 +75,7 @@ CloseSettings(*) {
 SaveSettings(*) {
     global Buttons
     StopRecording()
+    SyncChecks()
     Buttons := CloneButtons(Draft)
     Settings["vertical"] := DraftVertical
     ; only apply the scale if it was edited here (it may have been changed via the corner handle meanwhile)
@@ -87,10 +88,21 @@ SaveSettings(*) {
     CloseSettings()
 }
 
+; Copy the ListView checkboxes into Draft. Called before anything that changes or saves the list
+; (reading the state directly is more reliable than reacting to ItemCheck events).
+SyncChecks() {
+    for i, b in Draft
+        b["enabled"] := 0
+    row := 0
+    while row := SLV.GetNext(row, "Checked")
+        if row <= Draft.Length
+            Draft[row]["enabled"] := 1
+}
+
 RefreshList(select := 0) {
     SLV.Delete()
     for b in Draft
-        SLV.Add(, b["name"], b["command"], PrettyHotkey(b["hotkey"]), b["icon"])
+        SLV.Add(b["enabled"] ? "Check" : "", b["name"], b["command"], PrettyHotkey(b["hotkey"]), b["icon"])
     SLV.ModifyCol(1, 110), SLV.ModifyCol(2, 130), SLV.ModifyCol(3, 120), SLV.ModifyCol(4, 140)
     if select && select <= Draft.Length
         SLV.Modify(select, "Select Focus Vis")
@@ -162,11 +174,13 @@ BrowseIcon(*) {
 }
 
 AddRow(*) {
+    SyncChecks()
     Draft.Push(NewButton("New", "plus.png", "/"))
     RefreshList(Draft.Length)
 }
 
 DeleteRow(*) {
+    SyncChecks()
     i := SelectedIndex()
     if !i
         return
@@ -175,6 +189,7 @@ DeleteRow(*) {
 }
 
 MoveRow(dir) {
+    SyncChecks()
     i := SelectedIndex()
     j := i + dir
     if !i || j < 1 || j > Draft.Length

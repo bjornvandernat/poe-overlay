@@ -10,11 +10,11 @@ The bar only shows while the PoE window has focus. Clicking it never takes focus
 
 ## Features
 
-- Default buttons: `/hideout`, `/kingsmarch`, `/boat`, `/menagerie`, `/sanctum`
-- 24x24 monotone icons
+- Default buttons: Hideout (`/hideout`), Guild Hideout (`/guild`), Kingsmarch (`/kingsmarch`), Menagerie (`/menagerie`), Monastery (`/monastery`), Sanctum (`/sanctum`), Rogue Harbour (`/heist`), Mine Encampment (`/delve`) and The Sovereign (`/boat`)
+- Monotone icons, 48x48 px per button at 100% scale (the settings cog stays 24x24)
 - Click a button, or press its hotkey, to send the command
 - A settings panel (the cog button) to:
-  - add, delete and reorder buttons
+  - add, delete and reorder buttons, and enable or disable each one with its checkbox
   - change each button's name, command and icon
   - record a hotkey for each button
   - switch between horizontal and vertical layout
@@ -68,7 +68,7 @@ The script does not elevate itself. To run it as administrator, right-click the 
 - **Scale the bar:** drag the corner edge (a small "┘" shape) in the bottom-right corner. Dragging away from the bar enlarges it and dragging toward it shrinks it. The bar can't go below 50%.
 - **Run a command:** click a button, or press its hotkey while PoE has focus.
 - **Open settings:** click the cog.
-  - Select a row to edit it. **Add**, **Delete**, **Up** and **Down** manage the list.
+  - Select a row to edit it. **Add**, **Delete**, **Up** and **Down** manage the list. Untick a row's checkbox to hide that button and its hotkey without deleting it.
   - **Record** captures the next key combination you press. Esc cancels, and **Clear** removes the hotkey.
   - **Save** applies your changes. **Cancel** discards them.
 - **Tray menu:** the AutoHotkey tray icon has Settings, Reload and Exit.
@@ -77,9 +77,11 @@ Hotkeys only work while PoE has focus, and each one replaces that key's normal f
 
 ## Configuration
 
-Settings are stored in `settings.ini` next to the script. It is created on first run and is not tracked by git. Delete it to restore the defaults.
+Settings are stored in `settings.ini` next to the script. It is created on first run and is not tracked by git. Delete it to restore the defaults. The default button list only applies when no `settings.ini` exists, so an existing file keeps its own buttons.
 
-Icons live in `icons/`. To use your own, drop a PNG there (24x24 works best) and pick it in settings, or use **Browse...** to pick one from anywhere.
+Each button is saved as a `[ButtonN]` section with `name`, `icon`, `command`, `hotkey` and `enabled` (1 or 0). A section without `enabled`, for example from an older version, counts as enabled.
+
+Icons live in `icons/`. To use your own, drop a PNG there (48x48 works best) and pick it in settings, or use **Browse...** to pick one from anywhere.
 
 ## Project layout
 

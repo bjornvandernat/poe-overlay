@@ -40,7 +40,7 @@ RegisterHotkeys() {
         try Hotkey(hk, "Off")
     ActiveHotkeys := []
     for b in Buttons {
-        if b["hotkey"] = ""
+        if b["hotkey"] = "" || !b["enabled"]
             continue
         try {
             Hotkey("$" b["hotkey"], SendChat.Bind(b["command"]), "On")

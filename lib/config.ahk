@@ -4,20 +4,34 @@ global CFG_FILE := A_ScriptDir "\settings.ini"
 global ICON_DIR := A_ScriptDir "\icons"
 global SCALE_MIN := 50    ; percent
 global SCALE_MAX := 500
-global Settings := Map("x", 20, "y", 200, "size", 24, "vertical", 0, "scale", 100)
+global BUTTON_SIZE := 48   ; px at 100% scale
+global COG_SIZE := 24      ; the settings cog never scales
+global Settings := Map("x", 20, "y", 200, "vertical", 0, "scale", 100)
 global Buttons := []   ; Array of Map(name, icon, command, hotkey)
 
-NewButton(name, icon, command, hotkey := "") {
-    return Map("name", name, "icon", icon, "command", command, "hotkey", hotkey)
+NewButton(name, icon, command, hotkey := "", enabled := 1) {
+    return Map("name", name, "icon", icon, "command", command, "hotkey", hotkey, "enabled", enabled)
+}
+
+EnabledCount() {
+    n := 0
+    for b in Buttons
+        if b["enabled"]
+            n++
+    return n
 }
 
 DefaultButtons() {
     return [
         NewButton("Hideout", "hideout.png", "/hideout"),
+        NewButton("Guild Hideout", "guild.png", "/guild"),
         NewButton("Kingsmarch", "kingsmarch.png", "/kingsmarch"),
-        NewButton("Boat", "boat.png", "/boat"),
         NewButton("Menagerie", "menagerie.png", "/menagerie"),
+        NewButton("Monastery", "monastery.png", "/monastery"),
         NewButton("Sanctum", "sanctum.png", "/sanctum"),
+        NewButton("Rogue Harbour", "heist.png", "/heist"),
+        NewButton("Mine Encampment", "delve.png", "/delve"),
+        NewButton("The Sovereign", "boat.png", "/boat"),
     ]
 }
 
@@ -40,7 +54,8 @@ LoadConfig() {
             IniRead(CFG_FILE, sec, "name", "Button"),
             IniRead(CFG_FILE, sec, "icon", "plus.png"),
             IniRead(CFG_FILE, sec, "command", "/"),
-            IniRead(CFG_FILE, sec, "hotkey", "")))
+            IniRead(CFG_FILE, sec, "hotkey", ""),
+            Integer(IniRead(CFG_FILE, sec, "enabled", 1))))   ; missing value = enabled
     }
 }
 
@@ -51,7 +66,7 @@ SaveConfig() {
     IniWrite(Buttons.Length, CFG_FILE, "General", "count")
     for i, b in Buttons {
         sec := "Button" i
-        for key in ["name", "icon", "command", "hotkey"]
+        for key in ["name", "icon", "command", "hotkey", "enabled"]
             IniWrite(b[key], CFG_FILE, sec, key)
     }
 }

@@ -21,11 +21,11 @@ BuildOverlay() {
 
     ; Only the button images scale. Padding, grip and resize handle keep a fixed thickness; the
     ; cog stays at its base size and is centred on the cross axis.
-    sz := Max(8, Round(Settings["size"] * Settings["scale"] / 100))
-    cogSz := Settings["size"]
+    sz := Max(8, Round(BUTTON_SIZE * Settings["scale"] / 100))
+    cogSz := COG_SIZE
     pad := 3, gap := 3, grip := 8, handle := 10, t := 3
     vert := Settings["vertical"]
-    n := Buttons.Length
+    n := EnabledCount()
     along := pad + grip + pad + n * (sz + gap) + cogSz + pad + handle
     cross := Max(sz, cogSz) + 2 * pad
     OvW := vert ? cross : along
@@ -43,6 +43,8 @@ BuildOverlay() {
 
     pos := pad + grip + pad
     for b in Buttons {
+        if !b["enabled"]
+            continue
         ctl := AddOverlayButton(g, vert, pos, (cross - sz) // 2, sz, ResolveIcon(b["icon"]), SubStr(b["name"], 1, 1))
         ctl.OnEvent("Click", SendChat.Bind(b["command"]))
         HoverTips[ctl.Hwnd] := b["name"] "  (" b["command"] ")"
@@ -154,7 +156,7 @@ ResizeDrag() {
     ToolTip()
     MouseGetPos(&mx0, &my0)
     start := built := s := Settings["scale"]
-    pxPerPercent := Settings["size"] / 100 * Max(1, Buttons.Length + (start >= 100 ? 1 : 0))
+    pxPerPercent := BUTTON_SIZE / 100 * Max(1, EnabledCount() + (start >= 100 ? 1 : 0))
     while GetKeyState("LButton", "P") {
         MouseGetPos(&mx, &my)
         s := Max(SCALE_MIN, Min(SCALE_MAX, Round(start + ((mx - mx0) + (my - my0)) / pxPerPercent)))
