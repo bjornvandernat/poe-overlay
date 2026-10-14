@@ -19,9 +19,11 @@ The bar only shows while the PoE window has focus. Clicking it never takes focus
   - record a hotkey for each button
   - switch between horizontal and vertical layout
   - set the overlay scale (50-500%)
+  - lock the overlay so it can't be moved or resized
 - Draggable bar. Its position is remembered.
 - Resizable bar: drag the corner handle to scale the button images uniformly (50% to 500%). The cog, grip and handle keep their size. The scale is remembered.
 - Minimal look: until you hover the bar, only the button images are shown. The background, move grip, cog and resize handle appear on hover.
+- Lock option: when locked, hovering only reveals the cog; the background, move grip and resize handle stay hidden, so the bar can't be moved or resized by accident.
 
 ## How it works
 
@@ -66,6 +68,7 @@ The script does not elevate itself. To run it as administrator, right-click the 
 - **Show the controls:** move the mouse over the bar. The grip, cog and resize handle only appear while you hover it.
 - **Move the bar:** drag the dark grip strip at its edge.
 - **Scale the bar:** drag the corner edge (a small "┘" shape) in the bottom-right corner. Dragging away from the bar enlarges it and dragging toward it shrinks it. The bar can't go below 50%.
+- **Lock the bar:** tick "Lock overlay" in settings. While locked, hovering shows only the cog (to open settings and unlock it again), with no background, grip or resize handle.
 - **Run a command:** click a button, or press its hotkey while PoE has focus.
 - **Open settings:** click the cog.
   - Select a row to edit it. **Add**, **Delete**, **Up** and **Down** manage the list. Untick a row's checkbox to hide that button and its hotkey without deleting it.

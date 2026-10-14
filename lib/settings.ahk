@@ -3,18 +3,20 @@
 global SettingsGui := ""
 global Draft := []
 global DraftVertical := 0
-global SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, edScale
+global DraftLocked := 0
+global SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, chkLock, edScale
 global ScaleAtOpen := 100
 global RecHook := ""
 
 ShowSettings(*) {
-    global SettingsGui, Draft, DraftVertical, SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, edScale, ScaleAtOpen
+    global SettingsGui, Draft, DraftVertical, DraftLocked, SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, chkLock, edScale, ScaleAtOpen
     if SettingsGui {
         SettingsGui.Show()
         return
     }
     Draft := CloneButtons(Buttons)
     DraftVertical := Settings["vertical"]
+    DraftLocked := Settings["locked"]
 
     g := SettingsGui := Gui("+AlwaysOnTop", "PoE Overlay Settings")
     g.SetFont("s9", "Segoe UI")
@@ -27,6 +29,9 @@ ShowSettings(*) {
     chkVert := g.AddCheckbox("x+20 yp+4", "Vertical layout")
     chkVert.Value := DraftVertical
     chkVert.OnEvent("Click", ToggleVertical)
+    chkLock := g.AddCheckbox("x+14 yp", "Lock overlay")
+    chkLock.Value := DraftLocked
+    chkLock.OnEvent("Click", ToggleLocked)
 
     ScaleAtOpen := Settings["scale"]
     g.AddText("xm y+16 w110 +0x200", "Overlay scale (%)")
@@ -65,6 +70,11 @@ ToggleVertical(*) {
     DraftVertical := chkVert.Value
 }
 
+ToggleLocked(*) {
+    global DraftLocked
+    DraftLocked := chkLock.Value
+}
+
 CloseSettings(*) {
     global SettingsGui
     StopRecording()
@@ -78,6 +88,7 @@ SaveSettings(*) {
     SyncChecks()
     Buttons := CloneButtons(Draft)
     Settings["vertical"] := DraftVertical
+    Settings["locked"] := DraftLocked
     ; only apply the scale if it was edited here (it may have been changed via the corner handle meanwhile)
     v := edScale.Value
     if IsInteger(v) && v != ScaleAtOpen

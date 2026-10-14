@@ -6,7 +6,7 @@ global SCALE_MIN := 50    ; percent
 global SCALE_MAX := 500
 global BUTTON_SIZE := 48   ; px at 100% scale
 global COG_SIZE := 24      ; the settings cog never scales
-global Settings := Map("x", 20, "y", 200, "vertical", 0, "scale", 100)
+global Settings := Map("x", 20, "y", 200, "vertical", 0, "scale", 100, "locked", 0)
 global Buttons := []   ; Array of Map(name, icon, command, hotkey)
 
 NewButton(name, icon, command, hotkey := "", enabled := 1) {

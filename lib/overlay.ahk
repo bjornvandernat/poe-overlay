@@ -8,13 +8,17 @@ global OvW := 0
 global OvH := 0
 global HoverTips := Map()
 global LastTipHwnd := 0
-global OvChrome := []       ; controls only shown while hovering: grip, cog, resize handle
+global TipShown := false
+global HoverSince := 0
+global TOOLTIP_DELAY := 500    ; ms the pointer must rest on a control before its tooltip appears
+global OvChrome := []       ; grip + resize handle bars: shown on hover unless locked
+global OvCog := ""          ; settings cog: shown on hover, also when locked
 global OvHover := false
 global OvDragging := false  ; keeps the chrome visible during move/resize
 global OV_BG := "1C1C1C"    ; background colour; made click-through + invisible when not hovering
 
 BuildOverlay() {
-    global OvGui, OvGrip, OvHandle, OvChrome, OvShown, OvW, OvH, HoverTips
+    global OvGui, OvGrip, OvHandle, OvChrome, OvCog, OvShown, OvW, OvH, HoverTips
     old := OvGui
     HoverTips := Map()
     OvChrome := []
@@ -52,7 +56,7 @@ BuildOverlay() {
     }
     cog := AddOverlayButton(g, vert, pos, (cross - cogSz) // 2, cogSz, ICON_DIR "\cog.png", "*")
     cog.OnEvent("Click", (*) => ShowSettings())
-    OvChrome.Push(cog)
+    OvCog := cog
     HoverTips[cog.Hwnd] := "Settings"
 
     ; resize handle: a corner edge (bottom + right bars, like a "┘") in the bottom-right corner
@@ -88,12 +92,15 @@ ShowOverlay() {
     ApplyChrome()
 }
 
-; Not hovering: only the button images are visible (background keyed out and click-through, grip,
-; cog and resize handle hidden). Hovering: everything is drawn and the window is solid.
+; Not hovering: only the button images are visible (background keyed out and click-through; grip,
+; cog and resize handle hidden). Hovering: the cog appears, plus the background, grip and resize
+; handle unless the overlay is locked.
 ApplyChrome() {
+    full := OvHover && !Settings["locked"]
     for ctl in OvChrome
-        ctl.Visible := OvHover
-    try WinSetTransColor(OvHover ? "Off" : OV_BG, "ahk_id " OvGui.Hwnd)   ; throws while hidden
+        ctl.Visible := full
+    OvCog.Visible := OvHover
+    try WinSetTransColor(full ? "Off" : OV_BG, "ahk_id " OvGui.Hwnd)   ; throws while hidden
 }
 
 ; Hover is decided by the cursor position over the window rectangle, because the keyed-out
@@ -138,6 +145,8 @@ UpdateVisibility() {
 OnOverlayDown(wParam, lParam, msg, hwnd) {
     global OvDragging
     if !OvGui
+        return
+    if Settings["locked"]
         return
     if hwnd = OvGrip {
         OvDragging := true
@@ -195,20 +204,25 @@ OnDragEnd(wParam, lParam, msg, hwnd) {
 ; Polled instead of driven by WM_MOUSEMOVE: that message stops arriving while the mouse is
 ; pressed (drag/resize), when it leaves the overlay, or when the overlay hides.
 UpdateTooltip() {
-    global LastTipHwnd
+    global LastTipHwnd, TipShown, HoverSince
     h := 0
     if OvGui && OvShown && !GetKeyState("LButton", "P") {
         MouseGetPos(, , &win, &h, 2)
         if win != OvGui.Hwnd || !HoverTips.Has(h)
             h := 0
     }
-    if h = LastTipHwnd
-        return
-    LastTipHwnd := h
-    if h
+    if h != LastTipHwnd {
+        LastTipHwnd := h
+        HoverSince := A_TickCount
+        if TipShown {
+            ToolTip()
+            TipShown := false
+        }
+    }
+    if h && !TipShown && A_TickCount - HoverSince >= TOOLTIP_DELAY {
         ToolTip(HoverTips[h])
-    else
-        ToolTip()
+        TipShown := true
+    }
 }
 
 OnMessage(0x201, OnOverlayDown)    ; WM_LBUTTONDOWN
