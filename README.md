@@ -78,6 +78,20 @@ The script does not elevate itself. To run it as administrator, right-click the 
 
 Hotkeys only work while PoE has focus, and each one replaces that key's normal function in game. Plain Enter can't be used.
 
+## Updates
+
+The overlay checks GitHub for a newer release shortly after startup and then every few hours (turn this off with **Check for updates automatically** in settings). The check runs in the background and fails silently when you are offline.
+
+When a newer version exists:
+
+- a tray notification appears, but only while PoE is not focused, so it never interrupts a game;
+- the tray menu gets an **Update available** entry, and the tray tooltip says so;
+- clicking either opens a dialog with **Update now**, **Later** and **Skip this version**.
+
+Nothing is ever installed without your confirmation. **Update now** downloads the release zip, checks it, backs up the files it replaces, copies the new files over the install and restarts the overlay. If anything goes wrong the old files are restored. Your `settings.ini` is not part of the release, so your buttons, hotkeys and position are kept. Built-in files such as the default icons are replaced.
+
+You can also check manually from the tray menu (**Check for updates**) or with **Check now** in settings. Updates need `curl.exe` and `tar.exe`, which ship with Windows 10 and 11.
+
 ## Configuration
 
 Settings are stored in `settings.ini` next to the script. It is created on first run and is not tracked by git. Delete it to restore the defaults. The default button list only applies when no `settings.ini` exists, so an existing file keeps its own buttons.
@@ -95,6 +109,8 @@ lib/config.ahk           settings and button list (settings.ini)
 lib/commands.ahk         sending chat commands, hotkey registration
 lib/overlay.ahk          the floating button bar
 lib/settings.ahk         the settings panel
+lib/updater.ahk          update check and installer
+lib/version.ahk          reads VERSION
 icons/                   button icons (PNG)
 tools/generate-icons.ps1 icon generator
 ```

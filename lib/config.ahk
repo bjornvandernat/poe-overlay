@@ -6,7 +6,8 @@ global SCALE_MIN := 50    ; percent
 global SCALE_MAX := 500
 global BUTTON_SIZE := 48   ; px at 100% scale
 global COG_SIZE := 24      ; the settings cog never scales
-global Settings := Map("x", 20, "y", 200, "vertical", 0, "scale", 100, "locked", 0)
+global Settings := Map("x", 20, "y", 200, "vertical", 0, "scale", 100, "locked", 0, "autoUpdate", 1)
+global SkippedVersion := ""   ; release the user chose to skip
 global Buttons := []   ; Array of Map(name, icon, command, hotkey)
 
 NewButton(name, icon, command, hotkey := "", enabled := 1) {
@@ -36,7 +37,7 @@ DefaultButtons() {
 }
 
 LoadConfig() {
-    global Settings, Buttons
+    global Settings, Buttons, SkippedVersion
     if !FileExist(CFG_FILE) {
         Buttons := DefaultButtons()
         SaveConfig()
@@ -45,6 +46,7 @@ LoadConfig() {
     for key, def in Settings.Clone()
         Settings[key] := Integer(IniRead(CFG_FILE, "General", key, def))
     Settings["scale"] := Max(SCALE_MIN, Min(SCALE_MAX, Settings["scale"]))
+    SkippedVersion := IniRead(CFG_FILE, "General", "skipVersion", "")
 
     Buttons := []
     count := Integer(IniRead(CFG_FILE, "General", "count", 0))
@@ -63,6 +65,7 @@ SaveConfig() {
     try FileDelete(CFG_FILE)
     for key, val in Settings
         IniWrite(val, CFG_FILE, "General", key)
+    IniWrite(SkippedVersion, CFG_FILE, "General", "skipVersion")
     IniWrite(Buttons.Length, CFG_FILE, "General", "count")
     for i, b in Buttons {
         sec := "Button" i

@@ -4,12 +4,12 @@ global SettingsGui := ""
 global Draft := []
 global DraftVertical := 0
 global DraftLocked := 0
-global SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, chkLock, edScale
+global SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, chkLock, chkAuto, edScale
 global ScaleAtOpen := 100
 global RecHook := ""
 
 ShowSettings(*) {
-    global SettingsGui, Draft, DraftVertical, DraftLocked, SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, chkLock, edScale, ScaleAtOpen
+    global SettingsGui, Draft, DraftVertical, DraftLocked, SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, chkLock, chkAuto, edScale, ScaleAtOpen
     if SettingsGui {
         SettingsGui.Show()
         return
@@ -38,6 +38,11 @@ ShowSettings(*) {
     edScale := g.AddEdit("x+4 yp w60 Number")
     g.AddUpDown("Range" SCALE_MIN "-" SCALE_MAX, ScaleAtOpen)
     g.AddText("x+10 yp+3 cGray", SCALE_MIN "-" SCALE_MAX "; you can also drag the corner handle on the overlay")
+
+    chkAuto := g.AddCheckbox("xm y+12", "Check for updates automatically")
+    chkAuto.Value := Settings["autoUpdate"]
+    g.AddButton("x+16 yp-4 w110", "Check now").OnEvent("Click", (*) => CheckForUpdates(true))
+    g.AddText("x+14 yp+4 cGray", "Version " APP_VERSION)
 
     g.AddGroupBox("xm w520 h130 Section", "Selected button")
     g.AddText("xs+10 ys+24 w60", "Name")
@@ -89,6 +94,7 @@ SaveSettings(*) {
     Buttons := CloneButtons(Draft)
     Settings["vertical"] := DraftVertical
     Settings["locked"] := DraftLocked
+    Settings["autoUpdate"] := chkAuto.Value
     ; only apply the scale if it was edited here (it may have been changed via the corner handle meanwhile)
     v := edScale.Value
     if IsInteger(v) && v != ScaleAtOpen
