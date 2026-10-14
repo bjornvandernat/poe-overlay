@@ -2,7 +2,9 @@
 
 global CFG_FILE := A_ScriptDir "\settings.ini"
 global ICON_DIR := A_ScriptDir "\icons"
-global Settings := Map("x", 20, "y", 200, "size", 24, "vertical", 0)
+global SCALE_MIN := 50    ; percent
+global SCALE_MAX := 500
+global Settings := Map("x", 20, "y", 200, "size", 24, "vertical", 0, "scale", 100)
 global Buttons := []   ; Array of Map(name, icon, command, hotkey)
 
 NewButton(name, icon, command, hotkey := "") {
@@ -28,6 +30,7 @@ LoadConfig() {
     }
     for key, def in Settings.Clone()
         Settings[key] := Integer(IniRead(CFG_FILE, "General", key, def))
+    Settings["scale"] := Max(SCALE_MIN, Min(SCALE_MAX, Settings["scale"]))
 
     Buttons := []
     count := Integer(IniRead(CFG_FILE, "General", "count", 0))

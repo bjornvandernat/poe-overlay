@@ -18,7 +18,9 @@ The bar only shows while the PoE window has focus. Clicking it never takes focus
   - change each button's name, command and icon
   - record a hotkey for each button
   - switch between horizontal and vertical layout
+  - set the overlay scale (50-500%)
 - Draggable bar. Its position is remembered.
+- Resizable bar: drag the corner handle to scale it uniformly (50% to 500%). The scale is remembered.
 
 ## How it works
 
@@ -61,6 +63,7 @@ The script does not elevate itself. To run it as administrator, right-click the 
 ## Usage
 
 - **Move the bar:** drag the dark grip strip at its edge.
+- **Scale the bar:** drag the corner edge (a small "┘" shape) in the bottom-right corner. Dragging away from the bar enlarges it and dragging toward it shrinks it. The bar can't go below 50%.
 - **Run a command:** click a button, or press its hotkey while PoE has focus.
 - **Open settings:** click the cog.
   - Select a row to edit it. **Add**, **Delete**, **Up** and **Down** manage the list.

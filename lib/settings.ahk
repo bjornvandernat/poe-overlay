@@ -3,11 +3,12 @@
 global SettingsGui := ""
 global Draft := []
 global DraftVertical := 0
-global SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert
+global SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, edScale
+global ScaleAtOpen := 100
 global RecHook := ""
 
 ShowSettings(*) {
-    global SettingsGui, Draft, DraftVertical, SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert
+    global SettingsGui, Draft, DraftVertical, SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, edScale, ScaleAtOpen
     if SettingsGui {
         SettingsGui.Show()
         return
@@ -26,6 +27,12 @@ ShowSettings(*) {
     chkVert := g.AddCheckbox("x+20 yp+4", "Vertical layout")
     chkVert.Value := DraftVertical
     chkVert.OnEvent("Click", ToggleVertical)
+
+    ScaleAtOpen := Settings["scale"]
+    g.AddText("xm y+16 w110 +0x200", "Overlay scale (%)")
+    edScale := g.AddEdit("x+4 yp w60 Number")
+    g.AddUpDown("Range" SCALE_MIN "-" SCALE_MAX, ScaleAtOpen)
+    g.AddText("x+10 yp+3 cGray", SCALE_MIN "-" SCALE_MAX "; you can also drag the corner handle on the overlay")
 
     g.AddGroupBox("xm w520 h130 Section", "Selected button")
     g.AddText("xs+10 ys+24 w60", "Name")
@@ -70,6 +77,10 @@ SaveSettings(*) {
     StopRecording()
     Buttons := CloneButtons(Draft)
     Settings["vertical"] := DraftVertical
+    ; only apply the scale if it was edited here (it may have been changed via the corner handle meanwhile)
+    v := edScale.Value
+    if IsInteger(v) && v != ScaleAtOpen
+        Settings["scale"] := Max(SCALE_MIN, Min(SCALE_MAX, Integer(v)))
     SaveConfig()
     RegisterHotkeys()
     BuildOverlay()
