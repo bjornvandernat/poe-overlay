@@ -1,0 +1,66 @@
+; Settings + button list, persisted in settings.ini
+
+global CFG_FILE := A_ScriptDir "\settings.ini"
+global ICON_DIR := A_ScriptDir "\icons"
+global Settings := Map("x", 20, "y", 200, "size", 24, "vertical", 0)
+global Buttons := []   ; Array of Map(name, icon, command, hotkey)
+
+NewButton(name, icon, command, hotkey := "") {
+    return Map("name", name, "icon", icon, "command", command, "hotkey", hotkey)
+}
+
+DefaultButtons() {
+    return [
+        NewButton("Hideout", "hideout.png", "/hideout"),
+        NewButton("Kingsmarch", "kingsmarch.png", "/kingsmarch"),
+        NewButton("Boat", "boat.png", "/boat"),
+        NewButton("Menagerie", "menagerie.png", "/menagerie"),
+        NewButton("Sanctum", "sanctum.png", "/sanctum"),
+    ]
+}
+
+LoadConfig() {
+    global Settings, Buttons
+    if !FileExist(CFG_FILE) {
+        Buttons := DefaultButtons()
+        SaveConfig()
+        return
+    }
+    for key, def in Settings.Clone()
+        Settings[key] := Integer(IniRead(CFG_FILE, "General", key, def))
+
+    Buttons := []
+    count := Integer(IniRead(CFG_FILE, "General", "count", 0))
+    Loop count {
+        sec := "Button" A_Index
+        Buttons.Push(NewButton(
+            IniRead(CFG_FILE, sec, "name", "Button"),
+            IniRead(CFG_FILE, sec, "icon", "plus.png"),
+            IniRead(CFG_FILE, sec, "command", "/"),
+            IniRead(CFG_FILE, sec, "hotkey", "")))
+    }
+}
+
+SaveConfig() {
+    try FileDelete(CFG_FILE)
+    for key, val in Settings
+        IniWrite(val, CFG_FILE, "General", key)
+    IniWrite(Buttons.Length, CFG_FILE, "General", "count")
+    for i, b in Buttons {
+        sec := "Button" i
+        for key in ["name", "icon", "command", "hotkey"]
+            IniWrite(b[key], CFG_FILE, sec, key)
+    }
+}
+
+; Icons are stored as a bare file name (inside icons\) or an absolute path.
+ResolveIcon(icon) {
+    return InStr(icon, ":") ? icon : ICON_DIR "\" icon
+}
+
+CloneButtons(list) {
+    out := []
+    for b in list
+        out.Push(b.Clone())
+    return out
+}

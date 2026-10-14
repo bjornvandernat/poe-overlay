@@ -1,0 +1,11 @@
+# User-specific settings (generated on first run)
+settings.ini
+
+# Compiled scripts
+*.exe
+
+# OS / editor
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
