@@ -19,9 +19,11 @@ global OvDragging := false  ; keeps the chrome visible during move/resize
 global OV_BG := "1C1C1C"    ; background colour; made click-through + invisible when not hovering
 
 BuildOverlay() {
-    global OvGui, OvGrip, OvHandle, OvChrome, OvCog, OvShown, OvW, OvH, HoverTips
+    global OvGui, OvGrip, OvHandle, OvChrome, OvCog, OvShown, OvW, OvH, HoverTips, BtnHoverCtls
     old := OvGui
     HoverTips := Map()
+    BtnHoverCtls := []
+    BtnHoverHide()
     OvChrome := []
 
     ; Only the button images scale. Padding, grip and resize handle keep a fixed thickness; the
@@ -56,6 +58,7 @@ BuildOverlay() {
             continue
         ctl := AddOverlayButton(g, vert, pos, (cross - sz) // 2, sz, ResolveIcon(b["icon"]), SubStr(b["name"], 1, 1))
         ctl.OnEvent("Click", SendChat.Bind(b["command"]))
+        BtnHoverCtls.Push([ctl, ResolveIcon(b["icon"])])
         HoverTips[ctl.Hwnd] := Settings["showCommand"] ? [b["name"], b["command"]] : b["name"]   ; bold name, dimmer command
         pos += sz + gap
     }
@@ -64,6 +67,7 @@ BuildOverlay() {
         wb := AddOverlayButton(g, vert, pos, (cross - sz) // 2, sz, ICON_DIR "\widgets.png", "W")
         wb.OnEvent("Click", (*) => ToggleWidgets())
         HoverTips[wb.Hwnd] := "Stash widgets"
+        BtnHoverCtls.Push([wb, ICON_DIR "\widgets.png"])
         pos += sz + gap
     }
     cog := AddOverlayButton(g, vert, pos, (cross - cogSz) // 2, cogSz, ICON_DIR "\cog.png", "*")

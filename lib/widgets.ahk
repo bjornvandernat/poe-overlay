@@ -183,6 +183,7 @@ BuildWidget(w) {
     pt := WdFontPt()
     g.SetFont("s" pt " c2A2012 bold", "Segoe UI")   ; dark bold text on the gold title bar
     hit := Map()   ; control hwnd -> item index (for right-click)
+    hov := Map()   ; control hwnd -> [control, normal background, hover background, normal text, hover text] (hover feedback)
 
     title := g.AddText("x0 y0 w" (wd - 2 * WD_CTRL_W) " h" WD_TITLE_H " +0x100 +0x200 +0x80 BackgroundC8AA6E", "  " w["name"])
     g.SetFont("s" pt " norm", "Segoe UI Symbol")
@@ -191,6 +192,8 @@ BuildWidget(w) {
     g.SetFont("s" pt " cE8E8E8 norm", "Segoe UI")   ; light text for the items
     bEdit.OnEvent("Click", (*) => WidgetDialog(w))
     bDel.OnEvent("Click", (*) => DeleteWidget(w))
+    hov[bEdit.Hwnd] := [bEdit, "", "", "2A2012", "1B4F9C"]   ; dark text -> blue
+    hov[bDel.Hwnd] := [bDel, "", "", "2A2012", "A01818"]     ; dark text -> red
 
     y := WD_TITLE_H + WD_GAP
     for i, it in items {
@@ -198,15 +201,18 @@ BuildWidget(w) {
         c.OnEvent("Click", ItemClick.Bind(w, i))
         c.OnEvent("DoubleClick", ItemClick.Bind(w, i))
         hit[c.Hwnd] := i
+        hov[c.Hwnd] := [c, "2B3345", "3C4A66", "", ""]   ; lighter row
         y += WD_ROW_H + WD_GAP
     }
     add := g.AddText("x0 y" y " w" wd " h" WD_ROW_H " +0x100 +0x200 Center c9AA3B5 Background20242E", "+ Add search")
     add.OnEvent("Click", (*) => ItemDialog(w, 0))
+    hov[add.Hwnd] := [add, "", "", "9AA3B5", "FFFFFF"]   ; dim text -> white
     g.OnEvent("ContextMenu", WidgetContext.Bind(w))
 
     w["w"] := wd
     w["h"] := y + WD_ROW_H
     w["hit"] := hit
+    w["hov"] := hov
     w["titleHwnd"] := title.Hwnd
     w["gui"] := g
     if WdShown
@@ -506,6 +512,38 @@ OnWidgetCursor(wParam, lParam, msg, hwnd) {
         return
     }
 }
+
+; Hover feedback, polled like the tooltips: the control under the pointer gets its hover colours.
+global WdHot := ""   ; the hover entry currently highlighted
+SetHover(e, on) {
+    try {
+        if e[2] != ""
+            e[1].Opt("Background" (on ? e[3] : e[2]))
+        if e[4] != ""
+            e[1].SetFont("c" (on ? e[5] : e[4]))
+        e[1].Redraw()
+    }
+}
+UpdateWidgetHover() {
+    global WdHot
+    e := ""
+    if WdShown && !GetKeyState("LButton", "P") {
+        MouseGetPos(, , , &h, 2)
+        for w in Widgets
+            if w.Has("hov") && w["hov"].Has(h) {
+                e := w["hov"][h]
+                break
+            }
+    }
+    if e == WdHot
+        return
+    if WdHot != ""
+        SetHover(WdHot, false)
+    WdHot := e
+    if e != ""
+        SetHover(e, true)
+}
+SetTimer(UpdateWidgetHover, 40)
 
 OnMessage(0x201, OnWidgetDown)       ; WM_LBUTTONDOWN
 OnMessage(0x232, OnWidgetDragEnd)    ; WM_EXITSIZEMOVE
