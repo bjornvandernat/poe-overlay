@@ -282,7 +282,8 @@ WidgetTipFor(hwnd) {
 ItemClick(w, i, *) {
     if i <= w["items"].Length {
         SendSearch(w["items"][i]["search"])
-        CloseWidgets()   ; a search is a one-shot: get the widgets out of the way
+        if Settings["widgetsAutoExit"]
+            CloseWidgets()   ; a search is a one-shot: get the widgets out of the way
     }
 }
 

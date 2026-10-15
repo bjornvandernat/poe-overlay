@@ -56,7 +56,7 @@ BuildOverlay() {
             continue
         ctl := AddOverlayButton(g, vert, pos, (cross - sz) // 2, sz, ResolveIcon(b["icon"]), SubStr(b["name"], 1, 1))
         ctl.OnEvent("Click", SendChat.Bind(b["command"]))
-        HoverTips[ctl.Hwnd] := [b["name"], b["command"]]   ; bold name, dimmer normal-weight command
+        HoverTips[ctl.Hwnd] := Settings["showCommand"] ? [b["name"], b["command"]] : b["name"]   ; bold name, dimmer command
         pos += sz + gap
     }
     ; built-in button, always right before the cog: opens / closes the stash widgets

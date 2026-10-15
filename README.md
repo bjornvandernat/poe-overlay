@@ -4,10 +4,6 @@ A small floating bar of buttons for Path of Exile (PoE 1), written in AutoHotkey
 
 The bar only shows while the PoE window has focus. Clicking it never takes focus from the game.
 
-| The overlay in game | The settings panel |
-| --- | --- |
-| ![The overlay bar in the bottom-left of the PoE window](images/overlay.png) | ![The settings panel with the default buttons](images/settings.png) |
-
 ## Features
 
 - Default buttons: Hideout (`/hideout`), Guild Hideout (`/guild`), Kingsmarch (`/kingsmarch`), Menagerie (`/menagerie`), Monastery (`/monastery`), Sanctum (`/sanctum`), Rogue Harbour (`/heist`), Mine Encampment (`/delve`) and The Sovereign (`/boat`)
@@ -20,11 +16,48 @@ The bar only shows while the PoE window has focus. Clicking it never takes focus
   - record a hotkey for each button
   - switch between horizontal and vertical layout
   - set the overlay scale (50-500%)
+  - choose whether button tooltips show the command next to the name (on by default)
   - lock the overlay so it can't be moved or resized
 - Draggable bar. Its position is remembered.
 - Resizable bar: drag the corner handle to scale the button images uniformly (50% to 500%). The cog, grip and handle keep their size. The scale is remembered.
 - Minimal look: until you hover the bar, only the button images are shown. The background, move grip, cog and resize handle appear on hover.
 - Lock option: when locked, hovering only reveals the cog; the background, move grip and resize handle stay hidden, so the bar can't be moved or resized by accident.
+
+## Screenshots
+
+![The button bar over the game with a tooltip on the Guild Hideout button](images/screenshots/02-bar-tooltip.png)
+
+*Hover a button to see its name and command. The move grip and the settings cog appear on hover.*
+
+| Idle | Vertical layout |
+| --- | --- |
+| ![The idle bar: only the button icons are visible](images/screenshots/01-bar.png) | ![The bar in vertical layout with a tooltip on the right](images/screenshots/03-bar-vertical.png) |
+| *Until you hover it, only the icons show.* | *The bar can also run vertically; tooltips then appear to the right.* |
+
+### Stash search widgets
+
+![Three stash search widgets (Maps, Scarabs, Sanctum) next to the stash window, with a tooltip showing the search string of the hovered item and the toolbar at the bottom of the screen](images/screenshots/07-widgets.png)
+
+*The Stash widgets button (next to the cog) opens your widgets and a toolbar for adding more. Click a search to run it in your stash; hovering one shows the search string it will use.*
+
+| Search string tooltip | Widget settings |
+| --- | --- |
+| ![A tooltip showing the search string of a widget item](images/screenshots/08-widget-tooltip.png) | ![The widget dialog with the name field and the anchor point picker](images/screenshots/09-widget-dialog.png) |
+| *Hover a search to see the string it will use.* | *Rename a widget and pick which corner stays fixed when it grows.* |
+
+### Settings
+
+![The Travel Buttons settings page](images/screenshots/04-settings-travel-buttons.png)
+
+*Travel Buttons: add, reorder, enable and edit buttons, record hotkeys, and set layout, lock and scale.*
+
+![The Search Widgets settings page](images/screenshots/05-settings-search-widgets.png)
+
+*Search Widgets: turn the feature on or off and record a hotkey that opens and closes the widgets.*
+
+![The Automatic Updates settings page](images/screenshots/06-settings-updates.png)
+
+*Automatic Updates: the installed version, a manual check, and whether to check on its own. Nothing is installed without your confirmation.*
 
 ## How it works
 
@@ -84,7 +117,7 @@ Hotkeys only work while PoE has focus, and each one replaces that key's normal f
 
 A widget is a titled panel of saved stash searches. Open them with the **Stash widgets** button in the bar. A toolbar appears at the bottom middle of the PoE window, and the widgets appear where you left them. Everything outside the widgets and toolbar still clicks through to the game, so you can search while they are open.
 
-- **Search:** click an item. Its search string is copied, then Ctrl+F and Ctrl+V are sent. The search string stays on your clipboard (unlike chat commands, which restore it), and the widgets close.
+- **Search:** click an item. Its search string is copied, then Ctrl+F and Ctrl+V are sent. The search string stays on your clipboard (unlike chat commands, which restore it), and the widgets close. Untick **Exit widget mode automatically** on the Search Widgets settings page to keep them open after a search.
 - **New widget:** **+ New widget** in the toolbar. It opens at the centre of the window and asks for a name.
 - **Move:** drag the widget's title bar. The position is remembered.
 - **Rename, anchor or delete:** the pencil and cross at the right of the title (or right-click the title). The pencil dialog also sets the **anchor point**: click one of the four corners (top left by default). That corner stays fixed when the widget grows or shrinks, so a bottom-right widget grows up and to the left. Changing the anchor keeps the widget where it is. Deleting a widget that has searches asks for confirmation.

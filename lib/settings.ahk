@@ -4,8 +4,8 @@ global SettingsGui := ""
 global Draft := []
 global DraftVertical := 0
 global DraftLocked := 0
-global SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, chkLock, chkAuto, edScale
-global nav, Pages, chkWEnable, txWHotkey, btnWRec
+global SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, chkLock, chkAuto, edScale, chkShowCmd
+global nav, Pages, chkWEnable, chkWExit, txWHotkey, btnWRec
 global DraftWHotkey := ""
 global ScaleAtOpen := 100
 global RecHook := ""
@@ -14,8 +14,8 @@ global RecBtn := ""        ; its Record button, so the label can be restored
 global PAGE_X := 150       ; left edge of the page area (the page list sits to its left)
 
 ShowSettings(*) {
-    global SettingsGui, Draft, DraftVertical, DraftLocked, SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, chkLock, chkAuto, edScale, ScaleAtOpen
-    global nav, Pages, chkWEnable, txWHotkey, btnWRec, DraftWHotkey
+    global SettingsGui, Draft, DraftVertical, DraftLocked, SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, chkLock, chkAuto, edScale, ScaleAtOpen, chkShowCmd
+    global nav, Pages, chkWEnable, chkWExit, txWHotkey, btnWRec, DraftWHotkey
     if SettingsGui {
         SettingsGui.Show()
         return
@@ -52,6 +52,9 @@ ShowSettings(*) {
     g.AddUpDown("Range" SCALE_MIN "-" SCALE_MAX, ScaleAtOpen)
     g.AddText("x+10 yp+3 cGray", SCALE_MIN "-" SCALE_MAX "; you can also drag the corner handle on the overlay")
 
+    chkShowCmd := g.AddCheckbox("x" PAGE_X " y+12", "Show the command in button tooltips")
+    chkShowCmd.Value := Settings["showCommand"]
+
     grp := g.AddGroupBox("x" PAGE_X " y+16 w520 h130 Section", "Selected button")
     g.AddText("xs+10 ys+24 w60", "Name")
     edName := g.AddEdit("x+4 yp-3 w180")
@@ -79,6 +82,10 @@ ShowSettings(*) {
     btnWRec.OnEvent("Click", StartRecording.Bind("widgets"))
     g.AddButton("x+6 w60", "Clear").OnEvent("Click", ClearWidgetsHotkey)
     g.AddText("x" PAGE_X " y+14 cGray", "The hotkey opens and closes the widgets while PoE has focus.`nDisabling removes the widgets button from the bar and turns the hotkey off.")
+
+    chkWExit := g.AddCheckbox("x" PAGE_X " y+26", "Exit widget mode automatically")
+    chkWExit.Value := Settings["widgetsAutoExit"]
+    g.AddText("x" PAGE_X " y+6 cGray", "Widget mode is exited automatically when you click a stash search.`nTurn this off to keep the widgets open, for example to run several searches in a row.")
     c2 := ControlCount(g)
 
     ; ---- page 3: Automatic Updates ----
@@ -165,7 +172,9 @@ SaveSettings(*) {
     Settings["vertical"] := DraftVertical
     Settings["locked"] := DraftLocked
     Settings["autoUpdate"] := chkAuto.Value
+    Settings["showCommand"] := chkShowCmd.Value
     Settings["widgetsEnabled"] := chkWEnable.Value
+    Settings["widgetsAutoExit"] := chkWExit.Value
     WidgetsHotkey := DraftWHotkey
     if !Settings["widgetsEnabled"] && WidgetsOpen
         CloseWidgets()
