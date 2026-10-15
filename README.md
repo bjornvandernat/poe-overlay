@@ -49,11 +49,11 @@ The bar only shows while the PoE window has focus. Clicking it never takes focus
 
 ![The Travel Buttons settings page](images/screenshots/04-settings-travel-buttons.png)
 
-*Travel Buttons: add, reorder, enable and edit buttons, record hotkeys, and set layout, lock and scale.*
+*Travel Buttons: add, reorder, enable and edit buttons, record hotkeys, and set layout, lock, scale and whether tooltips show the command.*
 
 ![The Search Widgets settings page](images/screenshots/05-settings-search-widgets.png)
 
-*Search Widgets: turn the feature on or off and record a hotkey that opens and closes the widgets.*
+*Search Widgets: turn the feature on or off and record a hotkey that opens and closes the widgets, and choose whether a search closes them.*
 
 ![The Automatic Updates settings page](images/screenshots/06-settings-updates.png)
 
