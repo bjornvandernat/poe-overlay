@@ -11,3 +11,4 @@ Desktop.ini
 .idea/
 /overlay.ahk - Shortcut.lnk
 /tools/generate-icons.ps1
+/tools/release.sh
