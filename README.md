@@ -84,10 +84,10 @@ Hotkeys only work while PoE has focus, and each one replaces that key's normal f
 
 A widget is a titled panel of saved stash searches. Open them with the **Stash widgets** button in the bar. A toolbar appears at the bottom middle of the PoE window, and the widgets appear where you left them. Everything outside the widgets and toolbar still clicks through to the game, so you can search while they are open.
 
-- **Search:** click an item. Its search string is copied, then Ctrl+F and Ctrl+V are sent. Your clipboard is restored afterwards, and the widgets close.
+- **Search:** click an item. Its search string is copied, then Ctrl+F and Ctrl+V are sent. The search string stays on your clipboard (unlike chat commands, which restore it), and the widgets close.
 - **New widget:** **+ New widget** in the toolbar. It opens at the centre of the window and asks for a name.
 - **Move:** drag the widget's title bar. The position is remembered.
-- **Rename or delete:** the pencil and cross at the right of the title (or right-click the title). Deleting a widget that has searches asks for confirmation.
+- **Rename, anchor or delete:** the pencil and cross at the right of the title (or right-click the title). The pencil dialog also sets the **anchor point**: click one of the four corners (top left by default). That corner stays fixed when the widget grows or shrinks, so a bottom-right widget grows up and to the left. Changing the anchor keeps the widget where it is. Deleting a widget that has searches asks for confirmation.
 - **Add a search:** **+ Add search** at the bottom of a widget. The name can be anything; leave it empty to use the search string.
 - **Edit, delete or reorder a search:** right-click it.
 

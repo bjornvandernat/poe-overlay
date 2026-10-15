@@ -7,6 +7,7 @@ SetWorkingDir(A_ScriptDir)
 #Include lib\commands.ahk
 #Include lib\settings.ahk
 #Include lib\widgets.ahk
+#Include lib\tooltip.ahk
 #Include lib\overlay.ahk
 #Include lib\updater.ahk
 #Include *i lib\dev.ahk   ; optional, git-ignored local tweaks

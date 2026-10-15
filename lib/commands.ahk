@@ -21,14 +21,15 @@ IsOverlayTarget() {
     return false
 }
 
-; Puts text on the clipboard, sends the keys (the last one is followed by a longer pause), then restores
-; the clipboard. Works as a Click callback (ctrl, info) and as a Hotkey callback (name) via the wrappers.
-PasteKeys(text, keys*) {
+; Puts text on the clipboard and sends the keys (the last one is followed by a longer pause). With restore the
+; previous clipboard contents are put back afterwards, otherwise the text stays on the clipboard.
+; Works as a Click callback (ctrl, info) and as a Hotkey callback (name) via the wrappers.
+PasteKeys(text, restore, keys*) {
     global Busy
     if Busy || !IsPoeActive()
         return
     Busy := true
-    saved := ClipboardAll()
+    saved := restore ? ClipboardAll() : ""
     try {
         ; let go of modifiers from a hotkey so Enter / Ctrl+V aren't combined with them
         for k in ["Ctrl", "Alt", "Shift", "LWin", "RWin"]
@@ -42,18 +43,19 @@ PasteKeys(text, keys*) {
             }
         }
     }
-    A_Clipboard := saved
+    if restore
+        A_Clipboard := saved
     Busy := false
 }
 
 ; Chat command: Enter, paste, Enter
 SendChat(cmd, *) {
-    PasteKeys(cmd, "{Enter}", "^v", "{Enter}")
+    PasteKeys(cmd, true, "{Enter}", "^v", "{Enter}")
 }
 
-; Stash search: Ctrl+F, paste
+; Stash search: Ctrl+F, paste. The search string stays on the clipboard, so it can be pasted again.
 SendSearch(search, *) {
-    PasteKeys(search, "^f", "^v")
+    PasteKeys(search, false, "^f", "^v")
 }
 
 RegisterHotkeys() {

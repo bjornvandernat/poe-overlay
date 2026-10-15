@@ -56,7 +56,7 @@ BuildOverlay() {
             continue
         ctl := AddOverlayButton(g, vert, pos, (cross - sz) // 2, sz, ResolveIcon(b["icon"]), SubStr(b["name"], 1, 1))
         ctl.OnEvent("Click", SendChat.Bind(b["command"]))
-        HoverTips[ctl.Hwnd] := b["name"] "  (" b["command"] ")"
+        HoverTips[ctl.Hwnd] := [b["name"], b["command"]]   ; bold name, dimmer normal-weight command
         pos += sz + gap
     }
     ; built-in button, always right before the cog: opens / closes the stash widgets
@@ -150,7 +150,7 @@ UpdateVisibility() {
         OvShown := true
     } else if !want && OvShown {
         OvGui.Hide()
-        ToolTip()
+        HideTip()
         OvShown := false
     }
     SyncWidgets(want)
@@ -183,7 +183,7 @@ ResizeDrag() {
     global OvDragging
     OvDragging := true
     CoordMode("Mouse", "Screen")
-    ToolTip()
+    HideTip()
     MouseGetPos(&mx0, &my0)
     start := built := s := Settings["scale"]
     pxPerPercent := BUTTON_SIZE / 100 * Max(1, EnabledCount() + (start >= 100 ? 1 : 0))
@@ -254,22 +254,28 @@ OnDragEnd(wParam, lParam, msg, hwnd) {
 ; pressed (drag/resize), when it leaves the overlay, or when the overlay hides.
 UpdateTooltip() {
     global LastTipHwnd, TipShown, HoverSince
-    h := 0
-    if OvGui && OvShown && !GetKeyState("LButton", "P") {
+    h := 0, text := "", side := ""
+    if (OvShown || WdShown) && !GetKeyState("LButton", "P") {
         MouseGetPos(, , &win, &h, 2)
-        if win != OvGui.Hwnd || !HoverTips.Has(h)
+        if OvGui && win = OvGui.Hwnd && HoverTips.Has(h) {
+            text := HoverTips[h]
+            side := Settings["vertical"] ? "right" : "above"
+        } else if (tip := WidgetTipFor(h)) != "" {
+            text := ["", tip]   ; the search string: dim, normal weight
+            side := "right"
+        } else
             h := 0
     }
     if h != LastTipHwnd {
         LastTipHwnd := h
         HoverSince := A_TickCount
         if TipShown {
-            ToolTip()
+            HideTip()
             TipShown := false
         }
     }
     if h && !TipShown && A_TickCount - HoverSince >= TOOLTIP_DELAY {
-        ToolTip(HoverTips[h])
+        ShowTip(text, h, side)
         TipShown := true
     }
 }

@@ -4,7 +4,7 @@
 ; "+ New widget" in the toolbar). The built-in bar button (next to the cog) opens and closes them.
 
 global WID_FILE := A_ScriptDir "\widgets.ini"
-global Widgets := []         ; Map(name, x, y, items: [Map(name, search)]) + runtime keys: gui, w, h, hit, titleHwnd
+global Widgets := []         ; Map(name, x, y, anchor, items: [Map(name, search)]) + runtime keys: gui, w, h, hit, titleHwnd
 global WidgetsOpen := false
 global WdShown := false      ; currently visible (open, and PoE or one of our windows has focus)
 global WdToolbar := ""
@@ -42,6 +42,7 @@ LoadWidgets() {
         w := Map("name", WDec(IniRead(WID_FILE, sec, "name", "|Widget"))
             , "x", Integer(IniRead(WID_FILE, sec, "x", 100))
             , "y", Integer(IniRead(WID_FILE, sec, "y", 100))
+            , "anchor", ValidAnchor(IniRead(WID_FILE, sec, "anchor", "TL"))
             , "items", [])
         Loop Integer(IniRead(WID_FILE, sec, "count", 0)) {
             isec := sec "Item" A_Index
@@ -60,6 +61,7 @@ SaveWidgets() {
         IniWrite(WEnc(w["name"]), WID_FILE, sec, "name")
         IniWrite(w["x"], WID_FILE, sec, "x")
         IniWrite(w["y"], WID_FILE, sec, "y")
+        IniWrite(w["anchor"], WID_FILE, sec, "anchor")
         IniWrite(w["items"].Length, WID_FILE, sec, "count")
         for j, it in w["items"] {
             isec := sec "Item" j
@@ -95,6 +97,7 @@ OpenWidgets() {
 
 CloseWidgets() {
     global WidgetsOpen, WdShown, WdToolbar
+    HideTip()
     CloseWdDlg()
     WidgetsOpen := false
     WdShown := false
@@ -212,9 +215,23 @@ BuildWidget(w) {
         old.Destroy()
 }
 
+; A widget's x/y is the position of its anchor corner: "TL", "TR", "BL" or "BR" (top/bottom, left/right).
+; The anchor corner stays put when the widget grows or shrinks, so a bottom-right widget grows up and to the left.
+ValidAnchor(a) {
+    return (a = "TL" || a = "TR" || a = "BL" || a = "BR") ? a : "TL"
+}
+
+; How far the anchor corner is from the window's top-left corner (needs the widget's current size).
+AnchorOffset(w, anchor := "") {
+    if anchor = ""
+        anchor := w["anchor"]
+    return [InStr(anchor, "R") && w.Has("w") ? w["w"] : 0, InStr(anchor, "B") && w.Has("h") ? w["h"] : 0]
+}
+
 ShowWidget(w) {
-    x := Max(0, Min(w["x"], A_ScreenWidth - 40))
-    y := Max(0, Min(w["y"], A_ScreenHeight - 40))
+    off := AnchorOffset(w)
+    x := Max(0, Min(w["x"] - off[1], A_ScreenWidth - 40))
+    y := Max(0, Min(w["y"] - off[2], A_ScreenHeight - 40))
     w["gui"].Show("NA x" x " y" y " w" w["w"] " h" w["h"])
 }
 
@@ -253,6 +270,15 @@ ShowToolbar() {
 
 ; ---- actions ----
 
+; Tooltip for a control of a widget window: an item row shows its search string ("" for anything else).
+WidgetTipFor(hwnd) {
+    for w in Widgets {
+        if w.Has("hit") && w["hit"].Has(hwnd) && w["hit"][hwnd] <= w["items"].Length
+            return w["items"][w["hit"][hwnd]]["search"]
+    }
+    return ""
+}
+
 ItemClick(w, i, *) {
     if i <= w["items"].Length {
         SendSearch(w["items"][i]["search"])
@@ -276,6 +302,7 @@ NewWidget() {
     w := Map("name", "New widget"
         , "x", px + pw // 2 - 75 + n * 24
         , "y", py + ph // 2 - 60 + n * 24
+        , "anchor", "TL"
         , "items", [])
     Widgets.Push(w)
     SaveWidgets()
@@ -375,8 +402,32 @@ WidgetDialog(w) {
     CloseWdDlg()
     g := WdDlg := Gui("+AlwaysOnTop", "Widget")
     g.SetFont("s9", "Segoe UI")
-    g.AddText("w60", "Name")
+    g.AddText("w80", "Name")
     edName := g.AddEdit("x+4 yp-3 w260", w["name"])
+
+    ; anchor picker: a dotted square with a clickable square on each corner, the chosen one highlighted
+    g.AddText("xm y+20 w80", "Anchor point").GetPos(&lx, &ly)
+    box := 48, cs := 14   ; square size and corner square size, in px
+    left := lx + 84, top := ly
+    sel := ValidAnchor(w["anchor"])
+    ; as many 2px dots (4px apart) as fit between the corner squares, centred on each edge
+    inner := box - 2 * cs
+    n := (inner - 2) // 6
+    start := cs + (inner - (n * 2 + (n - 1) * 4)) // 2
+    Loop n {
+        t := start + (A_Index - 1) * 6
+        for xy in [[left + t, top + cs // 2 - 1], [left + t, top + box - cs // 2 - 1]
+                 , [left + cs // 2 - 1, top + t], [left + box - cs // 2 - 1, top + t]]
+            g.AddText("x" xy[1] " y" xy[2] " w2 h2 Background8A8A8A")
+    }
+    corners := Map()
+    for spec in [["TL", 0, 0], ["TR", box - cs, 0], ["BL", 0, box - cs], ["BR", box - cs, box - cs]] {
+        c := g.AddText("x" (left + spec[2]) " y" (top + spec[3]) " w" cs " h" cs " +0x100 Background" (spec[1] = sel ? "C8AA6E" : "4A5266"))
+        c.OnEvent("Click", PickAnchor.Bind(spec[1]))
+        corners[spec[1]] := c
+    }
+    g.AddText("xm y" (top + box + 10) " cGray", "The anchor corner stays fixed when the widget grows or shrinks.")
+
     g.AddButton("xm y+14 w80 Default", "Save").OnEvent("Click", OnSave)
     g.AddButton("x+6 w80", "Cancel").OnEvent("Click", (*) => CloseWdDlg())
     g.AddButton("x+24 w110", "Delete widget").OnEvent("Click", OnDelete)
@@ -384,10 +435,25 @@ WidgetDialog(w) {
     g.OnEvent("Escape", (*) => CloseWdDlg())
     g.Show()
 
+    PickAnchor(key, *) {
+        sel := key
+        for k, ctl in corners {
+            ctl.Opt("Background" (k = key ? "C8AA6E" : "4A5266"))
+            ctl.Redraw()
+        }
+    }
     OnSave(*) {
         name := Trim(edName.Value)
         if name != ""
             w["name"] := name
+        if sel != w["anchor"] {
+            ; keep the widget where it is on screen: express its position for the new anchor corner
+            was := AnchorOffset(w)
+            now := AnchorOffset(w, sel)
+            w["x"] := w["x"] - was[1] + now[1]
+            w["y"] := w["y"] - was[2] + now[2]
+            w["anchor"] := sel
+        }
         FinishEdit(w)
     }
     OnDelete(*) {
@@ -411,8 +477,9 @@ OnWidgetDragEnd(wParam, lParam, msg, hwnd) {
     for w in Widgets {
         if w.Has("gui") && w["gui"] && hwnd = w["gui"].Hwnd {
             WinGetPos(&x, &y, , , "ahk_id " hwnd)
-            w["x"] := x
-            w["y"] := y
+            off := AnchorOffset(w)
+            w["x"] := x + off[1]
+            w["y"] := y + off[2]
             SaveWidgets()
             return
         }
