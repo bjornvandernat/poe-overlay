@@ -273,4 +273,9 @@ global FgHook := DllCall("SetWinEventHook"
     , "Ptr", 0, "Ptr", CallbackCreate(OnForegroundChange)
     , "UInt", 0, "UInt", 0, "UInt", 0     ; all processes/threads, WINEVENT_OUTOFCONTEXT
     , "Ptr")
-OnExit((*) => FgHook && DllCall("UnhookWinEvent", "Ptr", FgHook))
+OnExit(UnhookForeground)
+UnhookForeground(*) {
+    if FgHook
+        DllCall("UnhookWinEvent", "Ptr", FgHook)
+    return 0   ; a non-zero return would cancel the exit, and Reload would hang on "Could not close the previous instance"
+}

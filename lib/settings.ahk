@@ -258,12 +258,12 @@ OnRecKey(ih, vk, sc) {
     if !i
         return
     if hk = "Enter" {
-        MsgBox("Plain Enter is used to open the chat; pick another key.", "Hotkey", "Icon!")
+        MsgBox("Plain Enter is used to open the chat; pick another key.", "Hotkey", "Icon! 262144")
         return
     }
     for idx, b in Draft
         if idx != i && b["hotkey"] = hk {
-            MsgBox(PrettyHotkey(hk) " is already used by '" b["name"] "'.", "Hotkey", "Icon!")
+            MsgBox(PrettyHotkey(hk) " is already used by '" b["name"] "'.", "Hotkey", "Icon! 262144")
             return
         }
     Draft[i]["hotkey"] := hk

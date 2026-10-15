@@ -62,7 +62,7 @@ CheckForUpdates(manual := false) {
         Run(cmd, , "Hide", &pid)
     } catch {
         if manual
-            MsgBox("Couldn't check for updates.", "PoE Overlay", "Icon!")
+            MsgBox("Couldn't check for updates.", "PoE Overlay", "Icon! 262144")
         return
     }
     UpCheck := Map("pid", pid, "file", file, "manual", manual, "start", A_TickCount)
@@ -87,7 +87,7 @@ HandleRelease(json, manual) {
     asset := '"browser_download_url"\s*:\s*"(https://github\.com/' UPDATE_REPO '/releases/download/[^"]+\.zip)"'
     if !RegExMatch(json, '"tag_name"\s*:\s*"v?(\d+(?:\.\d+)*)"', &tag) || !RegExMatch(json, asset, &zip) {
         if manual
-            MsgBox("Couldn't check for updates. Are you online?", "PoE Overlay", "Icon!")
+            MsgBox("Couldn't check for updates. Are you online?", "PoE Overlay", "Icon! 262144")
         return
     }
     ver := tag[1]
@@ -95,7 +95,7 @@ HandleRelease(json, manual) {
         UpdateVersion := ""
         RefreshUpdateTray()
         if manual
-            MsgBox("You're up to date (v" APP_VERSION ").", "PoE Overlay")
+            MsgBox("You're up to date (v" APP_VERSION ").", "PoE Overlay", 262144)
         return
     }
     if !manual && ver = SkippedVersion
@@ -200,10 +200,10 @@ ApplyUpdate() {
         InstallStaged(stage, tmp "\backup")
     } catch as e {
         detail := e.Message (e.Extra != "" ? "`n" e.Extra : "") "`n(" e.What ", line " e.Line ")"
-        MsgBox("The update failed, so nothing was changed.`n`n" detail "`n`nYou are still on v" APP_VERSION ".", "PoE Overlay", "Icon!")
+        MsgBox("The update failed, so nothing was changed.`n`n" detail "`n`nYou are still on v" APP_VERSION ".", "PoE Overlay", "Icon! 262144")
         return
     }
-    MsgBox("Updated to v" ver ". The overlay will now restart.", "PoE Overlay")
+    MsgBox("Updated to v" ver ". The overlay will now restart.", "PoE Overlay", 262144)
     Reload()
 }
 
@@ -211,7 +211,7 @@ ApplyUpdate() {
 InstallStaged(stage, backup) {
     files := []
     Loop Files, stage "\*", "FR"
-        files.Push(SubStr(A_LoopFileFullPath, StrLen(stage) + 2))
+        files.Push(SubStr(A_LoopFilePath, StrLen(stage) + 2))   ; not FullPath: A_Temp may be 8.3, FullPath is long
     done := []   ; [relative path, existed before]
     try {
         for rel in files {
@@ -223,7 +223,16 @@ InstallStaged(stage, backup) {
                 FileCopy(dst, backup "\" rel, 1)
             }
             DirCreate(A_ScriptDir (relDir != "" ? "\" relDir : ""))
-            FileCopy(stage "\" rel, dst, 1)
+            try {
+                FileCopy(stage "\" rel, dst, 1)
+            } catch {
+                try FileSetAttrib("-R", dst)   ; read-only copy? clear the flag and retry once
+                try {
+                    FileCopy(stage "\" rel, dst, 1)
+                } catch as e2 {
+                    throw Error("Couldn't replace " rel " (locked or read-only?)", , dst)
+                }
+            }
             done.Push([rel, existed])
         }
     } catch as e {

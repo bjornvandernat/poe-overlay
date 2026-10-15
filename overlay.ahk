@@ -9,10 +9,12 @@ SetWorkingDir(A_ScriptDir)
 #Include lib\overlay.ahk
 #Include lib\updater.ahk
 
-A_TrayMenu.Insert("1&", "Settings", ShowSettings)
-A_TrayMenu.Insert("2&", "Reload", (*) => Reload())
-A_TrayMenu.Insert("3&", "Check for updates", (*) => CheckForUpdates(true))
-A_TrayMenu.Insert("4&")
+A_TrayMenu.Delete()   ; drop AutoHotkey's standard items
+A_TrayMenu.Add("Settings", ShowSettings)
+A_TrayMenu.Add("Reload", (*) => Reload())
+A_TrayMenu.Add("Check for updates", (*) => CheckForUpdates(true))
+A_TrayMenu.Add("Exit", (*) => ExitApp())
+A_TrayMenu.Default := "Settings"   ; double-click on the tray icon
 A_IconTip := "PoE Overlay v" APP_VERSION
 if FileExist(A_ScriptDir "\icons\tray.ico")
     TraySetIcon(A_ScriptDir "\icons\tray.ico")
