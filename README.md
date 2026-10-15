@@ -11,6 +11,7 @@ The bar only shows while the PoE window has focus. Clicking it never takes focus
 ## Features
 
 - Default buttons: Hideout (`/hideout`), Guild Hideout (`/guild`), Kingsmarch (`/kingsmarch`), Menagerie (`/menagerie`), Monastery (`/monastery`), Sanctum (`/sanctum`), Rogue Harbour (`/heist`), Mine Encampment (`/delve`) and The Sovereign (`/boat`)
+- Stash widgets: a built-in button (next to the cog) opens draggable panels of saved stash searches. Click one to search your stash (Ctrl+F, then paste).
 - Icons, 48x48 px per button at 100% scale 
 - Click a button, or press its hotkey, to send the command
 - A settings panel (the cog button) to:
@@ -70,17 +71,35 @@ The script does not elevate itself. To run it as administrator, right-click the 
 - **Scale the bar:** drag the corner edge (a small "┘" shape) in the bottom-right corner. Dragging away from the bar enlarges it and dragging toward it shrinks it. The bar can't go below 50%.
 - **Lock the bar:** tick "Lock overlay" in settings. While locked, hovering shows only the cog (to open settings and unlock it again), with no background, grip or resize handle.
 - **Run a command:** click a button, or press its hotkey while PoE has focus.
-- **Open settings:** click the cog.
-  - Select a row to edit it. **Add**, **Delete**, **Up** and **Down** manage the list. Untick a row's checkbox to hide that button and its hotkey without deleting it.
+- **Open settings:** click the cog. A list on the left switches between the **Travel Buttons**, **Search Widgets** and **Automatic Updates** pages.
+  - On Travel Buttons, select a row to edit it. **Add**, **Delete**, **Up** and **Down** manage the list. Untick a row's checkbox to hide that button and its hotkey without deleting it.
   - **Record** captures the next key combination you press. Esc cancels, and **Clear** removes the hotkey.
   - **Save** applies your changes. **Cancel** discards them.
+- **Stash widgets:** click the Stash widgets button (just left of the cog) to open them, and click it again, use **Close** in the toolbar, or press **Esc** to close them. See below.
 - **Tray menu:** the AutoHotkey tray icon has Settings, Reload and Exit.
 
 Hotkeys only work while PoE has focus, and each one replaces that key's normal function in game. Plain Enter can't be used.
 
+## Stash widgets
+
+A widget is a titled panel of saved stash searches. Open them with the **Stash widgets** button in the bar. A toolbar appears at the bottom middle of the PoE window, and the widgets appear where you left them. Everything outside the widgets and toolbar still clicks through to the game, so you can search while they are open.
+
+- **Search:** click an item. Its search string is copied, then Ctrl+F and Ctrl+V are sent. Your clipboard is restored afterwards, and the widgets close.
+- **New widget:** **+ New widget** in the toolbar. It opens at the centre of the window and asks for a name.
+- **Move:** drag the widget's title bar. The position is remembered.
+- **Rename or delete:** the pencil and cross at the right of the title (or right-click the title). Deleting a widget that has searches asks for confirmation.
+- **Add a search:** **+ Add search** at the bottom of a widget. The name can be anything; leave it empty to use the search string.
+- **Edit, delete or reorder a search:** right-click it.
+
+The widgets are saved in `widgets.ini` next to the script (not tracked by git, and not touched by updates). They start closed after a restart.
+
+On the **Search Widgets** settings page you can turn the feature off (**Enabled**) and record a **hotkey** that opens and closes the widgets while PoE has focus. When disabled, the button disappears from the bar and the hotkey stops working.
+
+The Stash widgets button is built in, like the cog: it always sits right before the cog, scales with the other buttons, and isn't part of the editable button list (so it is configured on its own settings page instead). Its icon is `icons/widgets.png`.
+
 ## Updates
 
-The overlay checks GitHub for a newer release shortly after startup and then every few hours (turn this off with **Check for updates automatically** in settings). The check runs in the background and fails silently when you are offline.
+The overlay checks GitHub for a newer release shortly after startup and then every few hours (turn this off with **Check for updates automatically** on the Automatic Updates settings page). The check runs in the background and fails silently when you are offline.
 
 When a newer version exists:
 
@@ -90,7 +109,7 @@ When a newer version exists:
 
 Nothing is ever installed without your confirmation. **Update now** downloads the release zip, checks it, backs up the files it replaces, copies the new files over the install and restarts the overlay. If anything goes wrong the old files are restored. Your `settings.ini` is not part of the release, so your buttons, hotkeys and position are kept. Built-in files such as the default icons are replaced.
 
-You can also check manually from the tray menu (**Check for updates**) or with **Check now** in settings. Updates need `curl.exe` and `tar.exe`, which ship with Windows 10 and 11.
+You can also check manually from the tray menu (**Check for updates**) or with **Check now** on the Automatic Updates page. Updates need `curl.exe` and `tar.exe`, which ship with Windows 10 and 11.
 
 ## Configuration
 
@@ -108,6 +127,7 @@ VERSION                  current version (read by the script, checked by the rel
 lib/config.ahk           settings and button list (settings.ini)
 lib/commands.ahk         sending chat commands, hotkey registration
 lib/overlay.ahk          the floating button bar
+lib/widgets.ahk          stash search widgets (widgets.ini)
 lib/settings.ahk         the settings panel
 lib/updater.ahk          update check and installer
 lib/version.ahk          reads VERSION

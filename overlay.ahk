@@ -6,8 +6,10 @@ SetWorkingDir(A_ScriptDir)
 #Include lib\config.ahk
 #Include lib\commands.ahk
 #Include lib\settings.ahk
+#Include lib\widgets.ahk
 #Include lib\overlay.ahk
 #Include lib\updater.ahk
+#Include *i lib\dev.ahk   ; optional, git-ignored local tweaks
 
 A_TrayMenu.Delete()   ; drop AutoHotkey's standard items
 A_TrayMenu.Add("Settings", ShowSettings)
@@ -20,6 +22,7 @@ if FileExist(A_ScriptDir "\icons\tray.ico")
     TraySetIcon(A_ScriptDir "\icons\tray.ico")
 
 LoadConfig()
+LoadWidgets()
 RegisterHotkeys()
 BuildOverlay()
 InitUpdater()

@@ -31,7 +31,8 @@ BuildOverlay() {
     pad := 3, gap := 3, grip := 8, handle := 10, t := 3
     vert := Settings["vertical"]
     n := EnabledCount()
-    along := pad + grip + pad + n * (sz + gap) + cogSz + pad + handle
+    wOn := Settings["widgetsEnabled"]
+    along := pad + grip + pad + (n + (wOn ? 1 : 0)) * (sz + gap) + cogSz + pad + handle   ; buttons + widgets button + cog
     cross := Max(sz, cogSz) + 2 * pad
     OvW := vert ? cross : along
     OvH := vert ? along : cross
@@ -56,6 +57,13 @@ BuildOverlay() {
         ctl := AddOverlayButton(g, vert, pos, (cross - sz) // 2, sz, ResolveIcon(b["icon"]), SubStr(b["name"], 1, 1))
         ctl.OnEvent("Click", SendChat.Bind(b["command"]))
         HoverTips[ctl.Hwnd] := b["name"] "  (" b["command"] ")"
+        pos += sz + gap
+    }
+    ; built-in button, always right before the cog: opens / closes the stash widgets
+    if wOn {
+        wb := AddOverlayButton(g, vert, pos, (cross - sz) // 2, sz, ICON_DIR "\widgets.png", "W")
+        wb.OnEvent("Click", (*) => ToggleWidgets())
+        HoverTips[wb.Hwnd] := "Stash widgets"
         pos += sz + gap
     }
     cog := AddOverlayButton(g, vert, pos, (cross - cogSz) // 2, cogSz, ICON_DIR "\cog.png", "*")
@@ -136,8 +144,7 @@ UpdateVisibility() {
     global OvShown
     if !OvGui
         return
-    want := IsPoeActive() || WinActive("ahk_id " OvGui.Hwnd)
-        || (SettingsGui && WinActive("ahk_id " SettingsGui.Hwnd))
+    want := WantOverlay()
     if want && !OvShown {
         ShowOverlay()
         OvShown := true
@@ -146,6 +153,14 @@ UpdateVisibility() {
         ToolTip()
         OvShown := false
     }
+    SyncWidgets(want)
+}
+
+; The overlay (and the widgets) show while PoE or one of our own windows has focus.
+WantOverlay() {
+    return IsOverlayTarget() || WinActive("ahk_id " OvGui.Hwnd)
+        || (SettingsGui && WinActive("ahk_id " SettingsGui.Hwnd))
+        || (WdDlg && WinActive("ahk_id " WdDlg.Hwnd))
 }
 
 OnOverlayDown(wParam, lParam, msg, hwnd) {
@@ -194,6 +209,10 @@ ResizeDrag() {
 ; system cursor and draws its own). The grip and the resize handle are the exceptions: they get the move and resize arrows.
 CaptureGameCursor() {
     global GameCursor
+    CoordMode("Mouse", "Screen")
+    MouseGetPos(, , &under)
+    if under && WinGetPID("ahk_id " under) = ProcessExist()
+        return   ; over one of our own windows (bar, widgets, toolbar): that cursor isn't the game's
     ci := Buffer(A_PtrSize = 8 ? 24 : 20, 0)   ; CURSORINFO
     NumPut("UInt", ci.Size, ci)
     if DllCall("GetCursorInfo", "Ptr", ci)

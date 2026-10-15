@@ -12,3 +12,5 @@ Desktop.ini
 /overlay.ahk - Shortcut.lnk
 /tools/generate-icons.ps1
 /tools/release.sh
+/widgets.ini
+/lib/dev.ahk

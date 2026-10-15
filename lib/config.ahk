@@ -6,8 +6,9 @@ global SCALE_MIN := 50    ; percent
 global SCALE_MAX := 500
 global BUTTON_SIZE := 48   ; px at 100% scale
 global COG_SIZE := 24      ; the settings cog never scales
-global Settings := Map("x", 20, "y", 200, "vertical", 0, "scale", 100, "locked", 0, "autoUpdate", 1)
+global Settings := Map("x", 20, "y", 200, "vertical", 0, "scale", 100, "locked", 0, "autoUpdate", 1, "widgetsEnabled", 1)
 global SkippedVersion := ""   ; release the user chose to skip
+global WidgetsHotkey := ""    ; hotkey that opens / closes the search widgets
 global Buttons := []   ; Array of Map(name, icon, command, hotkey)
 
 NewButton(name, icon, command, hotkey := "", enabled := 1) {
@@ -37,7 +38,7 @@ DefaultButtons() {
 }
 
 LoadConfig() {
-    global Settings, Buttons, SkippedVersion
+    global Settings, Buttons, SkippedVersion, WidgetsHotkey
     if !FileExist(CFG_FILE) {
         Buttons := DefaultButtons()
         SaveConfig()
@@ -47,6 +48,7 @@ LoadConfig() {
         Settings[key] := Integer(IniRead(CFG_FILE, "General", key, def))
     Settings["scale"] := Max(SCALE_MIN, Min(SCALE_MAX, Settings["scale"]))
     SkippedVersion := IniRead(CFG_FILE, "General", "skipVersion", "")
+    WidgetsHotkey := IniRead(CFG_FILE, "General", "widgetsHotkey", "")
 
     Buttons := []
     count := Integer(IniRead(CFG_FILE, "General", "count", 0))
@@ -66,6 +68,7 @@ SaveConfig() {
     for key, val in Settings
         IniWrite(val, CFG_FILE, "General", key)
     IniWrite(SkippedVersion, CFG_FILE, "General", "skipVersion")
+    IniWrite(WidgetsHotkey, CFG_FILE, "General", "widgetsHotkey")
     IniWrite(Buttons.Length, CFG_FILE, "General", "count")
     for i, b in Buttons {
         sec := "Button" i
