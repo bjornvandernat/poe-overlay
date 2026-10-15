@@ -61,7 +61,13 @@ ShowSettings(*) {
     btnRec.OnEvent("Click", StartRecording)
     g.AddButton("x+6 w60", "Clear").OnEvent("Click", ClearHotkey)
 
-    g.AddButton("xm y+22 w90 Default", "Save").OnEvent("Click", SaveSettings)
+    ; button row: Ko-fi on the left, Save/Cancel right-aligned with the 520px content (2 x 90 + 6 gap = 186)
+    kofi := A_ScriptDir "\images\btn-kofi.png"
+    if FileExist(kofi) {
+        g.AddPicture("xm y+22 h32 w-1 +0x100", kofi).OnEvent("Click", (*) => Run("https://ko-fi.com/P5P21SSZ5N"))
+        g.AddButton("xm+334 yp+4 w90 Default", "Save").OnEvent("Click", SaveSettings)
+    } else
+        g.AddButton("xm+334 y+22 w90 Default", "Save").OnEvent("Click", SaveSettings)
     g.AddButton("x+6 w90", "Cancel").OnEvent("Click", CloseSettings)
     g.OnEvent("Close", CloseSettings)
     g.OnEvent("Escape", CloseSettings)
@@ -83,8 +89,9 @@ ToggleLocked(*) {
 CloseSettings(*) {
     global SettingsGui
     StopRecording()
-    SettingsGui.Destroy()
-    SettingsGui := ""
+    g := SettingsGui
+    SettingsGui := ""   ; clear first: Destroy() triggers a foreground-change event that reads SettingsGui.Hwnd
+    g.Destroy()
 }
 
 SaveSettings(*) {

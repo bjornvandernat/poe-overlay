@@ -24,7 +24,12 @@ jobs:
 
       - name: Build zip
         shell: pwsh
-        run: Compress-Archive -Path overlay.ahk, VERSION, lib, icons, README.md -DestinationPath "poe-travel-overlay-${{ github.ref_name }}.zip"
+        run: |
+          # images/ holds README screenshots and sources; only the Ko-fi button is used at runtime
+          New-Item -ItemType Directory -Path stage/images | Out-Null
+          Copy-Item images/btn-kofi.png stage/images/
+          Copy-Item overlay.ahk, VERSION, README.md, lib, icons -Destination stage -Recurse
+          Compress-Archive -Path stage/* -DestinationPath "poe-travel-overlay-${{ github.ref_name }}.zip"
 
       - name: Publish release
         shell: pwsh
