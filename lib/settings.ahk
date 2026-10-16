@@ -5,7 +5,7 @@ global Draft := []
 global DraftVertical := 0
 global DraftLocked := 0
 global SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, chkLock, chkAuto, edScale, chkShowCmd
-global nav, Pages, chkWEnable, chkWExit, txWHotkey, btnWRec
+global nav, Pages, chkWEnable, chkWExit, txWHotkey, btnWRec, txUpdStatus
 global DraftWHotkey := ""
 global ScaleAtOpen := 100
 global RecHook := ""
@@ -15,7 +15,7 @@ global PAGE_X := 150       ; left edge of the page area (the page list sits to i
 
 ShowSettings(*) {
     global SettingsGui, Draft, DraftVertical, DraftLocked, SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, chkLock, chkAuto, edScale, ScaleAtOpen, chkShowCmd
-    global nav, Pages, chkWEnable, chkWExit, txWHotkey, btnWRec, DraftWHotkey
+    global nav, Pages, chkWEnable, chkWExit, txWHotkey, btnWRec, DraftWHotkey, txUpdStatus
     if SettingsGui {
         SettingsGui.Show()
         return
@@ -46,15 +46,6 @@ ShowSettings(*) {
     chkLock.Value := DraftLocked
     chkLock.OnEvent("Click", ToggleLocked)
 
-    ScaleAtOpen := Settings["scale"]
-    g.AddText("x" PAGE_X " y+16 w110 +0x200", "Overlay scale (%)")
-    edScale := g.AddEdit("x+4 yp w60 Number")
-    g.AddUpDown("Range" SCALE_MIN "-" SCALE_MAX, ScaleAtOpen)
-    g.AddText("x+10 yp+3 cGray", SCALE_MIN "-" SCALE_MAX "; you can also drag the corner handle on the overlay")
-
-    chkShowCmd := g.AddCheckbox("x" PAGE_X " y+12", "Show the command in button tooltips")
-    chkShowCmd.Value := Settings["showCommand"]
-
     grp := g.AddGroupBox("x" PAGE_X " y+16 w520 h130 Section", "Selected button")
     g.AddText("xs+10 ys+24 w60", "Name")
     edName := g.AddEdit("x+4 yp-3 w180")
@@ -71,6 +62,16 @@ ShowSettings(*) {
     btnRec := g.AddButton("x+6 yp-2 w90", "Record")
     btnRec.OnEvent("Click", StartRecording.Bind("button"))
     g.AddButton("x+6 w60", "Clear").OnEvent("Click", ClearHotkey)
+
+    ScaleAtOpen := Settings["scale"]
+    grp.GetPos(, &gy0, , &gh0)   ; the last control above is inside the group box, so place by its bottom edge
+    g.AddText("x" PAGE_X " y" (gy0 + gh0 + 16) " w110 +0x200", "Overlay scale (%)")
+    edScale := g.AddEdit("x+4 yp w60 Number")
+    g.AddUpDown("Range" SCALE_MIN "-" SCALE_MAX, ScaleAtOpen)
+    g.AddText("x+10 yp+3 cGray", SCALE_MIN "-" SCALE_MAX "; you can also drag the corner handle on the overlay")
+
+    chkShowCmd := g.AddCheckbox("x" PAGE_X " y+12", "Show the command in button tooltips")
+    chkShowCmd.Value := Settings["showCommand"]
     c1 := ControlCount(g)
 
     ; ---- page 2: Search Widgets ----
@@ -93,14 +94,15 @@ ShowSettings(*) {
     chkAuto.Value := Settings["autoUpdate"]
     g.AddText("x" PAGE_X " y+22 w110 +0x200", "Installed version")
     g.AddText("x+4 yp w120 +0x200", APP_VERSION)
-    g.AddButton("x" PAGE_X " y+16 w110", "Check now").OnEvent("Click", (*) => CheckForUpdates(true))
+    g.AddButton("x" PAGE_X " y+16 w110", "Check now").OnEvent("Click", CheckNowClick)
+    txUpdStatus := g.AddText("x+12 yp+5 w390")   ; feedback for "Check now" (see SetUpdateStatus)
     g.AddText("x" PAGE_X " y+16 cGray", "The overlay looks for a newer release on GitHub shortly after it starts and then every few hours.`nNothing is installed without your confirmation.")
     c3 := ControlCount(g)
 
     Pages := [SliceControls(g, c0, c1), SliceControls(g, c1, c2), SliceControls(g, c2, c3)]
 
     ; the page list is as tall as the first page; the button row sits under both
-    grp.GetPos(, &gy, , &gh)
+    chkShowCmd.GetPos(, &gy, , &gh)   ; the last control on the tallest page
     nav.Move(, , , gy + gh - 10)
     by := gy + gh + 22
     ; Ko-fi on the left, Save/Cancel right-aligned with the 520px pages (2 x 90 + 6 gap = 186)
@@ -137,6 +139,18 @@ SliceControls(g, from, to) {
             out.Push(ctl)
     }
     return out
+}
+
+; "Check now": the result is shown next to the button; only a newer version opens the update dialog.
+CheckNowClick(*) {
+    SetUpdateStatus("Checking...")
+    CheckForUpdates("inline")
+}
+
+; Text next to the "Check now" button. Does nothing when the settings window isn't open.
+SetUpdateStatus(text) {
+    if SettingsGui
+        try txUpdStatus.Text := text
 }
 
 SwitchPage(n) {

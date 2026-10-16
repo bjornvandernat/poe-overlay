@@ -16,6 +16,7 @@ global WD_TITLE_H := 28
 global WD_ROW_H := 26
 global WD_GAP := 3
 global WD_MIN_W := 150
+global WD_MAX_W := 280       ; longer titles and items are cut off with an ellipsis
 global WD_CTRL_W := 26       ; width of the rename / delete glyphs in the title bar
 global TB_W := 440
 global TB_H := 50
@@ -171,9 +172,9 @@ BuildWidget(w) {
     names := []
     for it in items
         names.Push(it["name"])
-    wd := Max(WD_MIN_W
+    wd := Min(WD_MAX_W, Max(WD_MIN_W
         , items.Length ? MeasureText(names) + 24 : 0
-        , MeasureText([w["name"]], "bold") + 12 + 2 * WD_CTRL_W)
+        , MeasureText([w["name"]], "bold") + 12 + 2 * WD_CTRL_W))
 
     ; +E0x08000000 = never take focus on click, so PoE keeps it
     g := Gui("+AlwaysOnTop -Caption +ToolWindow -DPIScale +E0x08000000")
@@ -185,7 +186,7 @@ BuildWidget(w) {
     hit := Map()   ; control hwnd -> item index (for right-click)
     hov := Map()   ; control hwnd -> [control, normal background, hover background, normal text, hover text] (hover feedback)
 
-    title := g.AddText("x0 y0 w" (wd - 2 * WD_CTRL_W) " h" WD_TITLE_H " +0x100 +0x200 +0x80 BackgroundC8AA6E", "  " w["name"])
+    title := g.AddText("x0 y0 w" (wd - 2 * WD_CTRL_W) " h" WD_TITLE_H " +0x100 +0x200 +0x80 +0x4000 BackgroundC8AA6E", "  " w["name"])
     g.SetFont("s" pt " norm", "Segoe UI Symbol")
     bEdit := g.AddText("x" (wd - 2 * WD_CTRL_W) " y0 w" WD_CTRL_W " h" WD_TITLE_H " +0x100 +0x200 Center BackgroundC8AA6E", "✎")
     bDel := g.AddText("x" (wd - WD_CTRL_W) " y0 w" WD_CTRL_W " h" WD_TITLE_H " +0x100 +0x200 Center BackgroundC8AA6E", "✕")
@@ -197,7 +198,7 @@ BuildWidget(w) {
 
     y := WD_TITLE_H + WD_GAP
     for i, it in items {
-        c := g.AddText("x0 y" y " w" wd " h" WD_ROW_H " +0x100 +0x200 +0x80 Background2B3345", "  " it["name"])
+        c := g.AddText("x0 y" y " w" wd " h" WD_ROW_H " +0x100 +0x200 +0x80 +0x4000 Background2B3345", "  " it["name"])
         c.OnEvent("Click", ItemClick.Bind(w, i))
         c.OnEvent("DoubleClick", ItemClick.Bind(w, i))
         hit[c.Hwnd] := i
@@ -303,6 +304,7 @@ WidgetContext(w, g, ctrl, item, isRight, x, y) {
         WidgetDialog(w)
 }
 
+; Opens the dialog for a widget that doesn't exist yet; "Create" adds it, closing the dialog leaves nothing behind.
 NewWidget() {
     PoeRect(&px, &py, &pw, &ph)
     n := Mod(Widgets.Length, 6)
@@ -311,10 +313,7 @@ NewWidget() {
         , "y", py + ph // 2 - 60 + n * 24
         , "anchor", "TL"
         , "items", [])
-    Widgets.Push(w)
-    SaveWidgets()
-    BuildWidget(w)
-    WidgetDialog(w)
+    WidgetDialog(w, true)   ; only added once the dialog is confirmed
 }
 
 DeleteWidget(w) {
@@ -404,11 +403,9 @@ ItemDialog(w, idx) {
     }
 }
 
-WidgetDialog(w) {
-    global WdDlg
-    CloseWdDlg()
-    g := WdDlg := Gui("+AlwaysOnTop", "Widget")
-    g.SetFont("s9", "Segoe UI")
+; The settings both widget dialogs show: name and anchor point. Adds them to g and returns
+; Map("name", name edit, "anchor", function returning the chosen anchor).
+AddWidgetFields(g, w) {
     g.AddText("w80", "Name")
     edName := g.AddEdit("x+4 yp-3 w260", w["name"])
 
@@ -434,13 +431,7 @@ WidgetDialog(w) {
         corners[spec[1]] := c
     }
     g.AddText("xm y" (top + box + 10) " cGray", "The anchor corner stays fixed when the widget grows or shrinks.")
-
-    g.AddButton("xm y+14 w80 Default", "Save").OnEvent("Click", OnSave)
-    g.AddButton("x+6 w80", "Cancel").OnEvent("Click", (*) => CloseWdDlg())
-    g.AddButton("x+24 w110", "Delete widget").OnEvent("Click", OnDelete)
-    g.OnEvent("Close", (*) => CloseWdDlg())
-    g.OnEvent("Escape", (*) => CloseWdDlg())
-    g.Show()
+    return Map("name", edName, "anchor", () => sel)
 
     PickAnchor(key, *) {
         sel := key
@@ -449,11 +440,35 @@ WidgetDialog(w) {
             ctl.Redraw()
         }
     }
+}
+
+; Edit dialog for an existing widget (isNew = false), or the "New widget" dialog for a draft that isn't in
+; Widgets yet (isNew = true: no Delete button, "Create" instead of "Save").
+WidgetDialog(w, isNew := false) {
+    global WdDlg
+    CloseWdDlg()
+    g := WdDlg := Gui("+AlwaysOnTop", isNew ? "New widget" : "Widget")
+    g.SetFont("s9", "Segoe UI")
+    fields := AddWidgetFields(g, w)
+
+    g.AddButton("xm y+14 w80 Default", isNew ? "Create" : "Save").OnEvent("Click", OnSave)
+    g.AddButton("x+6 w80", "Cancel").OnEvent("Click", (*) => CloseWdDlg())
+    if !isNew
+        g.AddButton("x+24 w110", "Delete widget").OnEvent("Click", OnDelete)
+    g.OnEvent("Close", (*) => CloseWdDlg())
+    g.OnEvent("Escape", (*) => CloseWdDlg())
+    g.Show()
+
     OnSave(*) {
-        name := Trim(edName.Value)
+        name := Trim(fields["name"].Value)
         if name != ""
             w["name"] := name
-        if sel != w["anchor"] {
+        sel := fields["anchor"]()
+        if isNew {
+            ; the draft's x/y is the point the chosen anchor corner sits at
+            w["anchor"] := sel
+            Widgets.Push(w)
+        } else if sel != w["anchor"] {
             ; keep the widget where it is on screen: express its position for the new anchor corner
             was := AnchorOffset(w)
             now := AnchorOffset(w, sel)

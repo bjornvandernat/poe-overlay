@@ -47,10 +47,15 @@ CompareVersions(a, b) {
 
 ; ---- checking ----
 
+; manual: false = background check (silent), true = from the tray menu (dialogs for every result),
+; "inline" = "Check now" on the settings page (results shown there; only a newer version opens the dialog).
 CheckForUpdates(manual := false) {
     global UpCheck
-    if UpCheck.Count
+    if UpCheck.Count {
+        if manual
+            UpCheck["manual"] := manual   ; a check is already running: let it report to this caller
         return
+    }
     dir := UpdateTempDir()
     DirCreate(dir)
     file := dir "\latest.json"
@@ -61,8 +66,7 @@ CheckForUpdates(manual := false) {
     try {
         Run(cmd, , "Hide", &pid)
     } catch {
-        if manual
-            MsgBox("Couldn't check for updates.", "PoE Overlay", "Icon! 262144")
+        ReportCheck(manual, "Couldn't check for updates.", true)
         return
     }
     UpCheck := Map("pid", pid, "file", file, "manual", manual, "start", A_TickCount)
@@ -86,16 +90,14 @@ HandleRelease(json, manual) {
     global UpdateVersion, UpdateUrl, UpdateNotified
     asset := '"browser_download_url"\s*:\s*"(https://github\.com/' UPDATE_REPO '/releases/download/[^"]+\.zip)"'
     if !RegExMatch(json, '"tag_name"\s*:\s*"v?(\d+(?:\.\d+)*)"', &tag) || !RegExMatch(json, asset, &zip) {
-        if manual
-            MsgBox("Couldn't check for updates. Are you online?", "PoE Overlay", "Icon! 262144")
+        ReportCheck(manual, "Couldn't check for updates. Are you online?", true)
         return
     }
     ver := tag[1]
     if CompareVersions(ver, APP_VERSION) <= 0 {
         UpdateVersion := ""
         RefreshUpdateTray()
-        if manual
-            MsgBox("You're up to date (v" APP_VERSION ").", "PoE Overlay", 262144)
+        ReportCheck(manual, "You're up to date (v" APP_VERSION ").", false)
         return
     }
     if !manual && ver = SkippedVersion
@@ -105,8 +107,19 @@ HandleRelease(json, manual) {
     UpdateVersion := ver
     UpdateUrl := zip[1]
     RefreshUpdateTray()
-    if manual
+    if manual {
+        if manual = "inline"
+            SetUpdateStatus("Version " ver " is available.")
         ShowUpdateDialog()
+    }
+}
+
+; Result of a manual check without a newer version: a dialog for the tray menu, text on the settings page.
+ReportCheck(manual, text, isError) {
+    if manual = "inline"
+        SetUpdateStatus(text)
+    else if manual
+        MsgBox(text, "PoE Overlay", (isError ? "Icon! " : "") 262144)
 }
 
 ; ---- notifying ----
