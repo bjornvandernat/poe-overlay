@@ -14,7 +14,7 @@ global GdipToken := 0
 global BTN_HOVER_GAIN := 1.4     ; colour multiplier
 global BTN_HOVER_LIFT := 0.06    ; colour offset, so dark icons brighten too
 global BTN_GLOW_R := 10          ; px the glow reaches past the button
-global BTN_GLOW_ALPHA := 0.40    ; opacity of the glow at the icon's edge
+global BTN_GLOW_ALPHA := 0.25    ; opacity of the glow at the icon's edge
 global BTN_GLOW_FALLBACK := 0xC8AA6E   ; glow for icons without a clear main colour (the widgets' gold)
 
 ; Starts GDI+ and loads the icon (once per file). Returns the image, or 0 when it can't be loaded.

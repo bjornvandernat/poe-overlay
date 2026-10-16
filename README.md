@@ -8,7 +8,7 @@ The bar only shows while the PoE window has focus. Clicking it never takes focus
 
 - Default buttons: Hideout (`/hideout`), Guild Hideout (`/guild`), Kingsmarch (`/kingsmarch`), Menagerie (`/menagerie`), Monastery (`/monastery`), Sanctum (`/sanctum`), Rogue Harbour (`/heist`), Mine Encampment (`/delve`) and The Sovereign (`/boat`)
 - Stash widgets: a built-in button (next to the cog) opens draggable panels of saved stash searches. Click one to search your stash (Ctrl+F, then paste).
-- Icons, 48x48 px per button at 100% scale 
+- Icons, 47x47 px per button at 100% scale 
 - Click a button, or press its hotkey, to send the command
 - A settings panel (the cog button) to:
   - add, delete and reorder buttons, and enable or disable each one with its checkbox
@@ -150,7 +150,7 @@ Settings are stored in `settings.ini` next to the script. It is created on first
 
 Each button is saved as a `[ButtonN]` section with `name`, `icon`, `command`, `hotkey` and `enabled` (1 or 0). A section without `enabled`, for example from an older version, counts as enabled.
 
-Icons live in `icons/`. To use your own, drop a PNG there (48x48 works best) and pick it in settings, or use **Browse...** to pick one from anywhere.
+Icons live in `icons/`. To use your own, drop a PNG there (47x47 works best) and pick it in settings, or use **Browse...** to pick one from anywhere.
 
 ## Project layout
 
