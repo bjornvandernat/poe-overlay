@@ -11,7 +11,7 @@ global ScaleAtOpen := 100
 global RecHook := ""
 global RecTarget := ""     ; what the running recording is for: "button" (selected row) or "widgets"
 global RecBtn := ""        ; its Record button, so the label can be restored
-global PAGE_X := 150       ; left edge of the page area (the page list sits to its left)
+global PAGE_X := 190      ; left edge of the page area (the page list sits to its left)
 
 ShowSettings(*) {
     global SettingsGui, Draft, DraftVertical, DraftLocked, SLV, edName, edCmd, ddIcon, txHotkey, btnRec, chkVert, chkLock, chkAuto, edScale, ScaleAtOpen, chkShowCmd
@@ -27,9 +27,7 @@ ShowSettings(*) {
 
     g := SettingsGui := Gui("+AlwaysOnTop", "PoE Overlay Settings")
     g.SetFont("s9", "Segoe UI")
-    nav := g.AddListBox("x10 y10 w130 r3", ["Travel Buttons", "Search Widgets", "Automatic Updates"])
-    nav.Choose(1)
-    nav.OnEvent("Change", (*) => SwitchPage(nav.Value))
+    NavCreate(g, 10, 10, 170,[[A_ScriptDir "\icons\nav-travel.png", "Travel Buttons"], [A_ScriptDir "\icons\nav-search.png", "Search Widgets"], [A_ScriptDir "\icons\nav-updates.png", "Automatic Updates"]], SwitchPage)   ; PAGE_X leaves room for it
     c0 := ControlCount(g)
 
     ; ---- page 1: Travel Buttons ----
@@ -101,9 +99,8 @@ ShowSettings(*) {
 
     Pages := [SliceControls(g, c0, c1), SliceControls(g, c1, c2), SliceControls(g, c2, c3)]
 
-    ; the page list is as tall as the first page; the button row sits under both
+    ; the button row sits under the tallest page
     chkShowCmd.GetPos(, &gy, , &gh)   ; the last control on the tallest page
-    nav.Move(, , , gy + gh - 10)
     by := gy + gh + 22
     ; Ko-fi on the left, Save/Cancel right-aligned with the 520px pages (2 x 90 + 6 gap = 186)
     kofi := A_ScriptDir "\images\btn-kofi.png"
@@ -173,6 +170,7 @@ ToggleLocked(*) {
 CloseSettings(*) {
     global SettingsGui
     StopRecording()
+    NavFree()
     g := SettingsGui
     SettingsGui := ""   ; clear first: Destroy() triggers a foreground-change event that reads SettingsGui.Hwnd
     g.Destroy()

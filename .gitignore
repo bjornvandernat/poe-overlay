@@ -11,6 +11,7 @@ Desktop.ini
 .idea/
 /overlay.ahk - Shortcut.lnk
 /tools/generate-icons.ps1
+/tools/generate-nav-icons.ps1
 /tools/release.sh
 /widgets.ini
 /lib/dev.ahk
